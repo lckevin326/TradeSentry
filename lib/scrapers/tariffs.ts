@@ -1,6 +1,8 @@
+import { chromium } from 'playwright'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Country } from '@/types'
 
+// GCC 国家代码（作为进口方/reporter）
 const COUNTRY_CODES: Record<Country, string> = {
   UAE: '784',
   SA:  '682',
@@ -11,7 +13,7 @@ const COUNTRY_CODES: Record<Country, string> = {
 }
 
 const HS_CODES = ['401110', '401120', '401140', '401150', '401170', '401180']
-const REPORTER = '156' // 中国
+const CHINA = '156' // 中国（出口方/partner）
 
 interface MacMapResult {
   country: Country
@@ -20,42 +22,72 @@ interface MacMapResult {
   source_url: string
 }
 
-async function fetchOneTariff(country: Country, hsCode: string): Promise<MacMapResult> {
-  const partnerCode = COUNTRY_CODES[country]
-  const url = `https://www.macmap.org/api/results/query?reporter=${REPORTER}&partner=${partnerCode}&product=${hsCode}&indicator=1`
+async function fetchOneTariff(
+  page: import('playwright').Page,
+  country: Country,
+  hsCode: string
+): Promise<MacMapResult> {
+  const reporterCode = COUNTRY_CODES[country]
+  const url = `https://www.macmap.org/en/query/results?reporter=${reporterCode}&partner=${CHINA}&product=${hsCode}&indicator=1`
 
-  const res = await fetch(url, {
-    headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' },
-  })
+  let rate_pct: number | null = null
 
-  // MacMap 可能返回 HTML（JS 渲染），此时 rate_pct 为 null，后续人工处理
-  if (!res.ok || !res.headers.get('content-type')?.includes('json')) {
-    return { country, hs_code: hsCode, rate_pct: null, source_url: url }
+  // 拦截 customduties API 响应，提取 MaxMFNDutiesApplied
+  const handler = async (resp: import('playwright').Response) => {
+    if (
+      resp.url().includes('customduties') &&
+      resp.url().includes(`reporter=${reporterCode}`)
+    ) {
+      try {
+        const data = await resp.json()
+        const raw: string | null = data?.MaxMFNDutiesApplied ?? null
+        if (raw) {
+          const match = raw.match(/(\d+(?:\.\d+)?)/)
+          if (match) rate_pct = parseFloat(match[1])
+        }
+      } catch (_) {}
+    }
   }
 
-  const data = await res.json()
-  // MacMap JSON 结构：data.results[0].duty_rate 或 data.simpleAverage，根据实际返回调整
-  const rate = data?.results?.[0]?.duty_rate ?? data?.simpleAverage ?? null
-  return {
-    country,
-    hs_code: hsCode,
-    rate_pct: rate !== null ? parseFloat(rate) : null,
-    source_url: url,
+  page.on('response', handler)
+
+  try {
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    // 等待 API 调用完成（最多 15 秒）
+    await page.waitForTimeout(15000)
+  } catch (_) {
+    // timeout 不影响已拦截到的数据
+  } finally {
+    page.off('response', handler)
   }
+
+  return { country, hs_code: hsCode, rate_pct, source_url: url }
 }
 
 export async function fetchAndSaveTariffs(): Promise<{ checked: number; changed: number; failed: number }> {
+  const browser = await chromium.launch({ headless: true })
+  const page = await browser.newPage()
+  await page.setExtraHTTPHeaders({ 'Accept-Language': 'en-US,en;q=0.9' })
+
   let changed = 0
   let failed = 0
   const results: MacMapResult[] = []
 
-  for (const country of Object.keys(COUNTRY_CODES) as Country[]) {
-    for (const hs of HS_CODES) {
-      const result = await fetchOneTariff(country, hs)
-      results.push(result)
-      // 礼貌延迟，避免被封
-      await new Promise(r => setTimeout(r, 500))
+  try {
+    for (const country of Object.keys(COUNTRY_CODES) as Country[]) {
+      for (const hs of HS_CODES) {
+        console.log(`[tariffs] Fetching ${country} HS${hs}...`)
+        const result = await fetchOneTariff(page, country, hs)
+        results.push(result)
+        if (result.rate_pct === null) {
+          console.warn(`[tariffs] No rate for ${country} HS${hs}`)
+        } else {
+          console.log(`[tariffs] ${country} HS${hs} = ${result.rate_pct}%`)
+        }
+      }
     }
+  } finally {
+    await browser.close()
   }
 
   for (const result of results) {
@@ -64,7 +96,6 @@ export async function fetchAndSaveTariffs(): Promise<{ checked: number; changed:
       continue
     }
 
-    // 查询数据库最新一条
     const { data: latest } = await supabaseAdmin
       .from('tariffs')
       .select('rate_pct')
