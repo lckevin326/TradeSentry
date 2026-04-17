@@ -11,7 +11,7 @@ import {
   type OrderInput,
   type ProfitResult,
 } from './index'
-import { calculateProfitComparison, calculateProfitResult, dominantProfitDriver } from './calculate'
+import { calculateAttribution, calculateProfitComparison, calculateProfitResult, dominantProfitDriver } from './calculate'
 
 test('profit contract exports stable runtime choices', () => {
   assert.deepEqual(PROFIT_QUOTE_CURRENCIES, ['USD', 'CNY'])
@@ -195,6 +195,170 @@ test('calculateProfitComparison compares yesterday and today with one order', ()
       },
     },
   )
+})
+
+test('calculateAttribution isolates the FX contribution from yesterday baseline', () => {
+  const order: OrderInput = {
+    destinationCountry: 'UAE',
+    hsCode: '940360',
+    tradeTerm: 'FOB',
+    quoteCurrency: 'USD',
+    quotedAmount: 1000,
+    quantity: 10,
+    productCost: 4000,
+    miscFees: 100,
+    routeKey: 'shanghai-jebel-ali-20gp',
+    containerType: '20GP',
+  }
+
+  const yesterday: MarketSnapshot = {
+    fxRate: 7,
+    tariffRatePct: 10,
+    antiDumpingRatePct: 5,
+    exportRebateRatePct: 2,
+    baselineFreight: 100,
+    overrideFreight: null,
+  }
+
+  const today: MarketSnapshot = {
+    fxRate: 7.2,
+    tariffRatePct: 10,
+    antiDumpingRatePct: 5,
+    exportRebateRatePct: 2,
+    baselineFreight: 100,
+    overrideFreight: null,
+  }
+
+  assert.deepEqual(calculateAttribution(order, yesterday, today), {
+    fxDeltaCny: 174,
+    tariffDeltaCny: 0,
+    freightDeltaCny: 0,
+    totalDeltaCny: 174,
+    dominantDriver: 'fx',
+  } satisfies AttributionResult)
+})
+
+test('calculateAttribution isolates the tariff contribution from yesterday baseline', () => {
+  const order: OrderInput = {
+    destinationCountry: 'UAE',
+    hsCode: '940360',
+    tradeTerm: 'FOB',
+    quoteCurrency: 'USD',
+    quotedAmount: 1000,
+    quantity: 10,
+    productCost: 4000,
+    miscFees: 100,
+    routeKey: 'shanghai-jebel-ali-20gp',
+    containerType: '20GP',
+  }
+
+  const yesterday: MarketSnapshot = {
+    fxRate: 7,
+    tariffRatePct: 10,
+    antiDumpingRatePct: 5,
+    exportRebateRatePct: 2,
+    baselineFreight: 100,
+    overrideFreight: null,
+  }
+
+  const today: MarketSnapshot = {
+    fxRate: 7,
+    tariffRatePct: 12,
+    antiDumpingRatePct: 6,
+    exportRebateRatePct: 2,
+    baselineFreight: 100,
+    overrideFreight: null,
+  }
+
+  assert.deepEqual(calculateAttribution(order, yesterday, today), {
+    fxDeltaCny: 0,
+    tariffDeltaCny: -213,
+    freightDeltaCny: 0,
+    totalDeltaCny: -213,
+    dominantDriver: 'tariff',
+  } satisfies AttributionResult)
+})
+
+test('calculateAttribution isolates the freight contribution from yesterday baseline', () => {
+  const order: OrderInput = {
+    destinationCountry: 'UAE',
+    hsCode: '940360',
+    tradeTerm: 'FOB',
+    quoteCurrency: 'USD',
+    quotedAmount: 1000,
+    quantity: 10,
+    productCost: 4000,
+    miscFees: 100,
+    routeKey: 'shanghai-jebel-ali-20gp',
+    containerType: '20GP',
+  }
+
+  const yesterday: MarketSnapshot = {
+    fxRate: 7,
+    tariffRatePct: 10,
+    antiDumpingRatePct: 5,
+    exportRebateRatePct: 2,
+    baselineFreight: 100,
+    overrideFreight: null,
+  }
+
+  const today: MarketSnapshot = {
+    fxRate: 7,
+    tariffRatePct: 10,
+    antiDumpingRatePct: 5,
+    exportRebateRatePct: 2,
+    baselineFreight: 100,
+    overrideFreight: 140,
+  }
+
+  assert.deepEqual(calculateAttribution(order, yesterday, today), {
+    fxDeltaCny: 0,
+    tariffDeltaCny: 0,
+    freightDeltaCny: -46,
+    totalDeltaCny: -46,
+    dominantDriver: 'freight',
+  } satisfies AttributionResult)
+})
+
+test('calculateAttribution keeps separate contribution values in a combined change case', () => {
+  const order: OrderInput = {
+    destinationCountry: 'UAE',
+    hsCode: '940360',
+    tradeTerm: 'FOB',
+    quoteCurrency: 'USD',
+    quotedAmount: 1000,
+    quantity: 10,
+    productCost: 4000,
+    miscFees: 100,
+    routeKey: 'shanghai-jebel-ali-20gp',
+    containerType: '20GP',
+  }
+
+  const yesterday: MarketSnapshot = {
+    fxRate: 7,
+    tariffRatePct: 10,
+    antiDumpingRatePct: 5,
+    exportRebateRatePct: 2,
+    baselineFreight: 100,
+    overrideFreight: null,
+  }
+
+  const today: MarketSnapshot = {
+    fxRate: 7.2,
+    tariffRatePct: 12,
+    antiDumpingRatePct: 6,
+    exportRebateRatePct: 2,
+    baselineFreight: 100,
+    overrideFreight: 140,
+  }
+
+  assert.deepEqual(calculateAttribution(order, yesterday, today), {
+    fxDeltaCny: 174,
+    tariffDeltaCny: -213,
+    freightDeltaCny: -46,
+    totalDeltaCny: -92.2,
+    dominantDriver: 'tariff',
+  } satisfies AttributionResult)
 })
 
 test('dominantProfitDriver picks the largest absolute delta', () => {

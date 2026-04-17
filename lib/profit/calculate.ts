@@ -1,4 +1,4 @@
-import type { MarketSnapshot, OrderInput, ProfitDriver, ProfitResult } from './index'
+import type { AttributionResult, MarketSnapshot, OrderInput, ProfitDriver, ProfitResult } from './index'
 
 export interface ProfitComparisonResult {
   yesterday: ProfitResult
@@ -102,6 +102,47 @@ export function calculateProfitComparison(
         rebateCny: round2(todayResult.rebateCny - yesterdayResult.rebateCny),
       },
     },
+  }
+}
+
+export function calculateAttribution(
+  order: OrderInput,
+  yesterday: MarketSnapshot,
+  today: MarketSnapshot,
+): AttributionResult {
+  const baselineResult = calculateProfitResult(order, yesterday)
+
+  const fxOnlyResult = calculateProfitResult(order, {
+    ...yesterday,
+    fxRate: today.fxRate,
+  })
+  const tariffOnlyResult = calculateProfitResult(order, {
+    ...yesterday,
+    tariffRatePct: today.tariffRatePct,
+    antiDumpingRatePct: today.antiDumpingRatePct,
+    exportRebateRatePct: today.exportRebateRatePct,
+  })
+  const freightOnlyResult = calculateProfitResult(order, {
+    ...yesterday,
+    baselineFreight: today.baselineFreight,
+    overrideFreight: today.overrideFreight,
+  })
+  const todayResult = calculateProfitResult(order, today)
+
+  const fxDeltaCny = round2(fxOnlyResult.profitCny - baselineResult.profitCny)
+  const tariffDeltaCny = round2(tariffOnlyResult.profitCny - baselineResult.profitCny)
+  const freightDeltaCny = round2(freightOnlyResult.profitCny - baselineResult.profitCny)
+
+  return {
+    fxDeltaCny,
+    tariffDeltaCny,
+    freightDeltaCny,
+    totalDeltaCny: round2(todayResult.profitCny - baselineResult.profitCny),
+    dominantDriver: dominantProfitDriver({
+      fxDeltaCny,
+      tariffDeltaCny,
+      freightDeltaCny,
+    }),
   }
 }
 
