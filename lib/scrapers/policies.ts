@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import type { PolicySource } from '@/types'
 
 const KEYWORDS = ['轮胎', '橡胶', '4011', 'tire', 'GCC', 'UAE', '关税', 'tariff', '外贸', '进出口']
+const CUTOFF_DATE = new Date('2024-07-01')
 
 function isRelevant(text: string): boolean {
   const lower = text.toLowerCase()
@@ -134,6 +135,9 @@ export async function fetchAndSavePolicies(): Promise<{ scanned: number; saved: 
   let relevant = 0
 
   for (const item of allItems) {
+    // 跳过 2024-07-01 之前的数据
+    if (new Date(item.published_at) < CUTOFF_DATE) continue
+
     const combined = `${item.title} ${item.summary ?? ''}`
     const relevantFlag = isRelevant(combined)
     const keywords = matchedKeywords(combined)
