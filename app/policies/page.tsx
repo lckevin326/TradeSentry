@@ -11,7 +11,7 @@ export default function PoliciesPage() {
 
   useEffect(() => {
     const srcParam = source ? `&source=${source}` : ''
-    fetch(`/api/policies?relevant=true${srcParam}`)
+    fetch(`/api/policies?relevant=false${srcParam}`)
       .then(r => r.json()).then(setPolicies)
   }, [source])
 
