@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/fetch/rates",
+      "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/fetch/policies",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}
