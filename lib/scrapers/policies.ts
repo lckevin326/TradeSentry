@@ -25,6 +25,7 @@ interface PolicyItem {
 async function fetchMofcomPolicies(): Promise<PolicyItem[]> {
   const res = await fetch('http://www.mofcom.gov.cn/article/zcfb/', {
     headers: { 'User-Agent': 'Mozilla/5.0' },
+    signal: AbortSignal.timeout(15000),
   })
   if (!res.ok) return []
   const html = await res.text()
@@ -53,7 +54,7 @@ async function fetchMofcomPolicies(): Promise<PolicyItem[]> {
 
 async function fetchWtoPolicies(): Promise<PolicyItem[]> {
   const searchUrl = 'https://docs.wto.org/dol2fe/Pages/FE_Search/FE_S_S006.aspx?DataSource=Cat&query=tire+tariff&Language=English&Context=FomerScriptedSearch'
-  const res2 = await fetch(searchUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+  const res2 = await fetch(searchUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(15000) })
   if (!res2.ok) return []
   const html = await res2.text()
   const $ = cheerio.load(html)
