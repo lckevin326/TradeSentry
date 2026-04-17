@@ -108,7 +108,7 @@ test('calculateProfitResult computes margin from profit and revenue', () => {
     quantity: 10,
     productCost: 4700,
     miscFees: 100,
-    routeKey: 'ningbo-dammam-40hq',
+    routeKey: 'shanghai-dammam-40hq',
     containerType: '40HQ',
   }
 
