@@ -39,7 +39,8 @@ async function fetchMofcomPolicies(page: import('playwright').Page): Promise<Pol
         const fullText = container?.textContent || ''
         const dateMatch = fullText.match(/\[(\d{4}-\d{2}-\d{2})\]/)
         const title = a.textContent?.trim() || ''
-        if (dateMatch && title.length > 5 && a.href.includes('http')) {
+        const isJunk = title.startsWith('[') || title.length < 8
+        if (dateMatch && !isJunk && a.href.includes('http')) {
           results.push({ title, date: dateMatch[1], href: a.href })
         }
       }
@@ -63,35 +64,47 @@ async function fetchMofcomPolicies(page: import('playwright').Page): Promise<Pol
   return items
 }
 
-// WTO 新闻页面（Playwright）
+// WTO 最新新闻页面（Playwright）
 async function fetchWtoPolicies(page: import('playwright').Page): Promise<PolicyItem[]> {
   const items: PolicyItem[] = []
   try {
-    // WTO 关税和贸易政策新闻
-    await page.goto('https://www.wto.org/english/tratop_e/tariffs_e/tariffs_e.htm', {
+    await page.goto('https://www.wto.org/english/news_e/news25_e.htm', {
       waitUntil: 'domcontentloaded',
       timeout: 20000,
     })
     await page.waitForTimeout(3000)
 
     const links = await page.evaluate(() => {
+      // WTO 新闻页的文章链接，格式：/english/news_e/newsXX_e/...
       return Array.from(document.querySelectorAll('a')).filter(a => {
-        const text = a.textContent?.trim() || ''
         const href = a.href || ''
-        return text.length > 10 && href.includes('wto.org') && !href.includes('#')
-      }).slice(0, 20).map(a => ({
-        title: a.textContent?.trim() ?? '',
-        href: a.href,
-      }))
+        const text = a.textContent?.trim() || ''
+        return text.length > 15 && href.includes('/news_e/') && !href.endsWith('news25_e.htm')
+          && !text.toLowerCase().includes('calendar') && !text.toLowerCase().includes('subscribe')
+      }).slice(0, 20).map(a => {
+        const container = a.closest('li, td, div, p')
+        const dateMatch = container?.textContent?.match(/(\d{1,2}\s+\w+\s+202\d)/)
+        return {
+          title: a.textContent?.trim() ?? '',
+          href: a.href,
+          date: dateMatch?.[1] ?? '',
+        }
+      })
     })
 
     for (const link of links) {
       if (link.title && link.href) {
+        let published_at: string
+        try {
+          published_at = link.date ? new Date(link.date).toISOString() : new Date().toISOString()
+        } catch {
+          published_at = new Date().toISOString()
+        }
         items.push({
           title: link.title,
           summary: null,
           source: 'wto',
-          published_at: new Date().toISOString(),
+          published_at,
           url: link.href,
         })
       }
@@ -109,10 +122,9 @@ export async function fetchAndSavePolicies(): Promise<{ scanned: number; saved: 
 
   let allItems: PolicyItem[] = []
   try {
-    const [mofcom, wto] = await Promise.all([
-      fetchMofcomPolicies(page),
-      fetchWtoPolicies(page),
-    ])
+    // 顺序执行，共用同一个 page 实例，避免并发导航冲突
+    const mofcom = await fetchMofcomPolicies(page)
+    const wto = await fetchWtoPolicies(page)
     allItems = [...mofcom, ...wto]
   } finally {
     await browser.close()
