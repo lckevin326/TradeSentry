@@ -13,6 +13,10 @@ import {
 } from './index'
 import { calculateAttribution, calculateProfitComparison, calculateProfitResult, dominantProfitDriver } from './calculate'
 
+function round2(value: number): number {
+  return Math.round(value * 100) / 100
+}
+
 test('profit contract exports stable runtime choices', () => {
   assert.deepEqual(PROFIT_QUOTE_CURRENCIES, ['USD', 'CNY'])
   assert.deepEqual(PROFIT_TRADE_TERMS, ['FOB', 'CIF'])
@@ -231,14 +235,14 @@ test('calculateAttribution isolates the FX contribution from yesterday baseline'
 
   assert.deepEqual(calculateAttribution(order, yesterday, today), {
     fxDeltaCny: 174,
-    tariffDeltaCny: 0,
+    dutiesDeltaCny: 0,
     freightDeltaCny: 0,
     totalDeltaCny: 174,
     dominantDriver: 'fx',
   } satisfies AttributionResult)
 })
 
-test('calculateAttribution isolates the tariff contribution from yesterday baseline', () => {
+test('calculateAttribution isolates the duties contribution from yesterday baseline', () => {
   const order: OrderInput = {
     destinationCountry: 'UAE',
     hsCode: '940360',
@@ -272,7 +276,7 @@ test('calculateAttribution isolates the tariff contribution from yesterday basel
 
   assert.deepEqual(calculateAttribution(order, yesterday, today), {
     fxDeltaCny: 0,
-    tariffDeltaCny: -213,
+    dutiesDeltaCny: -213,
     freightDeltaCny: 0,
     totalDeltaCny: -213,
     dominantDriver: 'tariff',
@@ -313,14 +317,14 @@ test('calculateAttribution isolates the freight contribution from yesterday base
 
   assert.deepEqual(calculateAttribution(order, yesterday, today), {
     fxDeltaCny: 0,
-    tariffDeltaCny: 0,
+    dutiesDeltaCny: 0,
     freightDeltaCny: -46,
     totalDeltaCny: -46,
     dominantDriver: 'freight',
   } satisfies AttributionResult)
 })
 
-test('calculateAttribution keeps separate contribution values in a combined change case', () => {
+test('calculateAttribution decomposes combined changes into additive contributions', () => {
   const order: OrderInput = {
     destinationCountry: 'UAE',
     hsCode: '940360',
@@ -354,18 +358,65 @@ test('calculateAttribution keeps separate contribution values in a combined chan
 
   assert.deepEqual(calculateAttribution(order, yesterday, today), {
     fxDeltaCny: 174,
-    tariffDeltaCny: -213,
-    freightDeltaCny: -46,
+    dutiesDeltaCny: -219,
+    freightDeltaCny: -47.2,
     totalDeltaCny: -92.2,
     dominantDriver: 'tariff',
   } satisfies AttributionResult)
+})
+
+test('calculateAttribution keeps the duties bucket honest when tariff rate is unchanged', () => {
+  const order: OrderInput = {
+    destinationCountry: 'UAE',
+    hsCode: '940360',
+    tradeTerm: 'FOB',
+    quoteCurrency: 'USD',
+    quotedAmount: 1000,
+    quantity: 10,
+    productCost: 4000,
+    miscFees: 100,
+    routeKey: 'shanghai-jebel-ali-20gp',
+    containerType: '20GP',
+  }
+
+  const yesterday: MarketSnapshot = {
+    fxRate: 7,
+    tariffRatePct: 10,
+    antiDumpingRatePct: 5,
+    exportRebateRatePct: 2,
+    baselineFreight: 100,
+    overrideFreight: null,
+  }
+
+  const today: MarketSnapshot = {
+    fxRate: 7,
+    tariffRatePct: 10,
+    antiDumpingRatePct: 8,
+    exportRebateRatePct: 0,
+    baselineFreight: 100,
+    overrideFreight: null,
+  }
+
+  const attribution = calculateAttribution(order, yesterday, today)
+
+  assert.deepEqual(attribution, {
+    fxDeltaCny: 0,
+    dutiesDeltaCny: -353,
+    freightDeltaCny: 0,
+    totalDeltaCny: -353,
+    dominantDriver: 'tariff',
+  } satisfies AttributionResult)
+  assert.equal(
+    round2(attribution.fxDeltaCny + attribution.dutiesDeltaCny + attribution.freightDeltaCny),
+    attribution.totalDeltaCny,
+  )
 })
 
 test('dominantProfitDriver picks the largest absolute delta', () => {
   assert.equal(
     dominantProfitDriver({
       fxDeltaCny: -18,
-      tariffDeltaCny: 24,
+      dutiesDeltaCny: 24,
       freightDeltaCny: 12,
     }),
     'tariff',
@@ -375,7 +426,7 @@ test('dominantProfitDriver picks the largest absolute delta', () => {
 test('profit attribution type remains compatible with exported contract', () => {
   const attribution: AttributionResult = {
     fxDeltaCny: 0,
-    tariffDeltaCny: 0,
+    dutiesDeltaCny: 0,
     freightDeltaCny: 0,
     totalDeltaCny: 0,
     dominantDriver: 'fx',

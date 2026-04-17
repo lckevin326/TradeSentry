@@ -112,35 +112,32 @@ export function calculateAttribution(
 ): AttributionResult {
   const baselineResult = calculateProfitResult(order, yesterday)
 
+  // Apply the change drivers in a fixed order so each component is a true increment.
   const fxOnlyResult = calculateProfitResult(order, {
     ...yesterday,
     fxRate: today.fxRate,
   })
-  const tariffOnlyResult = calculateProfitResult(order, {
+  const fxAndDutiesResult = calculateProfitResult(order, {
     ...yesterday,
     tariffRatePct: today.tariffRatePct,
     antiDumpingRatePct: today.antiDumpingRatePct,
     exportRebateRatePct: today.exportRebateRatePct,
-  })
-  const freightOnlyResult = calculateProfitResult(order, {
-    ...yesterday,
-    baselineFreight: today.baselineFreight,
-    overrideFreight: today.overrideFreight,
+    fxRate: today.fxRate,
   })
   const todayResult = calculateProfitResult(order, today)
 
   const fxDeltaCny = round2(fxOnlyResult.profitCny - baselineResult.profitCny)
-  const tariffDeltaCny = round2(tariffOnlyResult.profitCny - baselineResult.profitCny)
-  const freightDeltaCny = round2(freightOnlyResult.profitCny - baselineResult.profitCny)
+  const dutiesDeltaCny = round2(fxAndDutiesResult.profitCny - fxOnlyResult.profitCny)
+  const freightDeltaCny = round2(todayResult.profitCny - fxAndDutiesResult.profitCny)
 
   return {
     fxDeltaCny,
-    tariffDeltaCny,
+    dutiesDeltaCny,
     freightDeltaCny,
     totalDeltaCny: round2(todayResult.profitCny - baselineResult.profitCny),
     dominantDriver: dominantProfitDriver({
       fxDeltaCny,
-      tariffDeltaCny,
+      dutiesDeltaCny,
       freightDeltaCny,
     }),
   }
@@ -148,12 +145,12 @@ export function calculateAttribution(
 
 export function dominantProfitDriver(deltas: {
   fxDeltaCny: number
-  tariffDeltaCny: number
+  dutiesDeltaCny: number
   freightDeltaCny: number
 }): ProfitDriver {
   const candidates: Array<[ProfitDriver, number]> = [
     ['fx', Math.abs(deltas.fxDeltaCny)],
-    ['tariff', Math.abs(deltas.tariffDeltaCny)],
+    ['tariff', Math.abs(deltas.dutiesDeltaCny)],
     ['freight', Math.abs(deltas.freightDeltaCny)],
   ]
 

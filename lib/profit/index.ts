@@ -48,7 +48,7 @@ export interface ProfitResult {
 
 export interface AttributionResult {
   fxDeltaCny: number
-  tariffDeltaCny: number
+  dutiesDeltaCny: number
   freightDeltaCny: number
   totalDeltaCny: number
   dominantDriver: ProfitDriver
