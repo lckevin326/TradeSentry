@@ -4,7 +4,7 @@ export type Country = (typeof PROFIT_COUNTRIES)[number]
 export const PROFIT_QUOTE_CURRENCIES = ['USD', 'CNY'] as const
 export type ProfitQuoteCurrency = (typeof PROFIT_QUOTE_CURRENCIES)[number]
 
-export const PROFIT_TRADE_TERMS = ['FOB', 'CIF', 'EXW', 'DDP'] as const
+export const PROFIT_TRADE_TERMS = ['FOB', 'CIF'] as const
 export type TradeTerm = (typeof PROFIT_TRADE_TERMS)[number]
 
 export const PROFIT_CONTAINER_TYPES = ['20GP', '40GP', '40HQ'] as const

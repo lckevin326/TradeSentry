@@ -11,48 +11,204 @@ import {
   type OrderInput,
   type ProfitResult,
 } from './index'
+import { calculateProfitComparison, calculateProfitResult, dominantProfitDriver } from './calculate'
 
 test('profit contract exports stable runtime choices', () => {
   assert.deepEqual(PROFIT_QUOTE_CURRENCIES, ['USD', 'CNY'])
-  assert.deepEqual(PROFIT_TRADE_TERMS, ['FOB', 'CIF', 'EXW', 'DDP'])
+  assert.deepEqual(PROFIT_TRADE_TERMS, ['FOB', 'CIF'])
   assert.deepEqual(PROFIT_CONTAINER_TYPES, ['20GP', '40GP', '40HQ'])
   assert.deepEqual(PROFIT_DRIVERS, ['fx', 'tariff', 'freight'])
 })
 
-test('profit fixtures are executable and bound to the local contract', () => {
+test('calculateProfitResult uses baseline freight when no override exists', () => {
   const order: OrderInput = {
     destinationCountry: 'UAE',
     hsCode: '940360',
     tradeTerm: 'FOB',
     quoteCurrency: 'USD',
-    quotedAmount: 1200,
+    quotedAmount: 1000,
     quantity: 10,
-    productCost: 700,
-    miscFees: 35,
+    productCost: 4000,
+    miscFees: 100,
     routeKey: 'shanghai-jebel-ali-20gp',
     containerType: '20GP',
   }
 
   const snapshot: MarketSnapshot = {
-    fxRate: 7.2,
-    tariffRatePct: 5,
-    antiDumpingRatePct: 1,
+    fxRate: 7,
+    tariffRatePct: 10,
+    antiDumpingRatePct: 5,
     exportRebateRatePct: 2,
-    baselineFreight: 180,
-    overrideFreight: 200,
+    baselineFreight: 100,
+    overrideFreight: null,
   }
 
-  const profit: ProfitResult = {
-    revenueCny: 8640,
-    costCny: 5400,
-    profitCny: 3240,
-    marginPct: 37.5,
-    freightCny: 200,
-    tariffCny: 300,
-    antiDumpingCny: 60,
+  const result = calculateProfitResult(order, snapshot)
+
+  assert.deepEqual(result, {
+    revenueCny: 7000,
+    costCny: 5125,
+    profitCny: 1875,
+    marginPct: 26.79,
+    freightCny: 100,
+    tariffCny: 710,
+    antiDumpingCny: 355,
+    rebateCny: 140,
+  } satisfies ProfitResult)
+})
+
+test('calculateProfitResult uses overridden freight when present', () => {
+  const order: OrderInput = {
+    destinationCountry: 'UAE',
+    hsCode: '940360',
+    tradeTerm: 'CIF',
+    quoteCurrency: 'USD',
+    quotedAmount: 1000,
+    quantity: 10,
+    productCost: 3600,
+    miscFees: 100,
+    routeKey: 'shanghai-jebel-ali-20gp',
+    containerType: '20GP',
+  }
+
+  const snapshot: MarketSnapshot = {
+    fxRate: 8,
+    tariffRatePct: 10,
+    antiDumpingRatePct: 5,
+    exportRebateRatePct: 2,
+    baselineFreight: 120,
+    overrideFreight: 180,
+  }
+
+  const result = calculateProfitResult(order, snapshot)
+
+  assert.deepEqual(result, {
+    revenueCny: 8000,
+    costCny: 4923.6,
+    profitCny: 3076.4,
+    marginPct: 38.46,
+    freightCny: 180,
+    tariffCny: 800,
+    antiDumpingCny: 400,
+    rebateCny: 156.4,
+  } satisfies ProfitResult)
+})
+
+test('calculateProfitResult computes margin from profit and revenue', () => {
+  const order: OrderInput = {
+    destinationCountry: 'SA',
+    hsCode: '940360',
+    tradeTerm: 'FOB',
+    quoteCurrency: 'CNY',
+    quotedAmount: 10000,
+    quantity: 10,
+    productCost: 4700,
+    miscFees: 100,
+    routeKey: 'ningbo-dammam-40hq',
+    containerType: '40HQ',
+  }
+
+  const snapshot: MarketSnapshot = {
+    fxRate: 1,
+    tariffRatePct: 0,
+    antiDumpingRatePct: 0,
+    exportRebateRatePct: 0,
+    baselineFreight: 200,
+    overrideFreight: null,
+  }
+
+  const result = calculateProfitResult(order, snapshot)
+
+  assert.equal(result.profitCny, 5000)
+  assert.equal(result.marginPct, 50)
+})
+
+test('calculateProfitComparison compares yesterday and today with one order', () => {
+  const order: OrderInput = {
+    destinationCountry: 'UAE',
+    hsCode: '940360',
+    tradeTerm: 'FOB',
+    quoteCurrency: 'USD',
+    quotedAmount: 1000,
+    quantity: 10,
+    productCost: 4000,
+    miscFees: 100,
+    routeKey: 'shanghai-jebel-ali-20gp',
+    containerType: '20GP',
+  }
+
+  const yesterday: MarketSnapshot = {
+    fxRate: 7,
+    tariffRatePct: 10,
+    antiDumpingRatePct: 5,
+    exportRebateRatePct: 2,
+    baselineFreight: 100,
+    overrideFreight: null,
+  }
+
+  const today: MarketSnapshot = {
+    fxRate: 7.2,
+    tariffRatePct: 10,
+    antiDumpingRatePct: 5,
+    exportRebateRatePct: 2,
+    baselineFreight: 100,
+    overrideFreight: 140,
+  }
+
+  const comparison = calculateProfitComparison(order, yesterday, today)
+
+  assert.deepEqual(comparison.yesterday, {
+    revenueCny: 7000,
+    costCny: 5125,
+    profitCny: 1875,
+    marginPct: 26.79,
+    freightCny: 100,
+    tariffCny: 710,
+    antiDumpingCny: 355,
+    rebateCny: 140,
+  } satisfies ProfitResult)
+  assert.deepEqual(comparison.today, {
+    revenueCny: 7200,
+    costCny: 5197,
+    profitCny: 2003,
+    marginPct: 27.82,
+    freightCny: 140,
+    tariffCny: 734,
+    antiDumpingCny: 367,
     rebateCny: 144,
-  }
+  } satisfies ProfitResult)
+  assert.deepEqual(
+    comparison.deltas,
+    {
+      profit: {
+        cny: 128,
+        marginPct: 1.03,
+      },
+      operating: {
+        revenueCny: 200,
+        freightCny: 40,
+      },
+      duties: {
+        tariffCny: 24,
+        antiDumpingCny: 12,
+        rebateCny: 4,
+      },
+    },
+  )
+})
 
+test('dominantProfitDriver picks the largest absolute delta', () => {
+  assert.equal(
+    dominantProfitDriver({
+      fxDeltaCny: -18,
+      tariffDeltaCny: 24,
+      freightDeltaCny: 12,
+    }),
+    'tariff',
+  )
+})
+
+test('profit attribution type remains compatible with exported contract', () => {
   const attribution: AttributionResult = {
     fxDeltaCny: 0,
     tariffDeltaCny: 0,
@@ -61,9 +217,5 @@ test('profit fixtures are executable and bound to the local contract', () => {
     dominantDriver: 'fx',
   }
 
-  assert.equal(order.quoteCurrency, 'USD')
-  assert.equal(snapshot.overrideFreight, 200)
-  assert.equal(profit.marginPct, 37.5)
   assert.equal(attribution.dominantDriver, 'fx')
-  assert.equal(PROFIT_QUOTE_CURRENCIES.includes(order.quoteCurrency), true)
 })
