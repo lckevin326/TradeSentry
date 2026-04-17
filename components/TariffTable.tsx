@@ -4,6 +4,14 @@ import type { Tariff, Country } from '@/types'
 
 const COUNTRIES: Country[] = ['UAE', 'SA', 'KW', 'QA', 'BH', 'OM']
 const HS_CODES = ['401110', '401120', '401140', '401150', '401170', '401180']
+const HS_NAMES: Record<string, string> = {
+  '401110': '乘用车轮胎',
+  '401120': '公共汽车/卡车轮胎',
+  '401140': '摩托车轮胎',
+  '401150': '自行车轮胎',
+  '401170': '农业/林业机械轮胎',
+  '401180': '其他轮胎',
+}
 
 interface Props {
   data: Tariff[]
@@ -39,7 +47,7 @@ export default function TariffTable({ data, onRefresh, loading }: Props) {
             className="text-sm border rounded px-2 py-1.5 bg-white"
           >
             <option value="">全部 HS 编码</option>
-            {HS_CODES.map(h => <option key={h} value={h}>{h}</option>)}
+            {HS_CODES.map(h => <option key={h} value={h}>{h} {HS_NAMES[h]}</option>)}
           </select>
         </div>
         <button
@@ -74,7 +82,10 @@ export default function TariffTable({ data, onRefresh, loading }: Props) {
                 return (
                   <tr key={row.id} className={row.changed ? 'bg-red-50' : ''}>
                     <td className="px-4 py-3 font-medium">{row.country}</td>
-                    <td className="px-4 py-3 font-mono">{row.hs_code}</td>
+                    <td className="px-4 py-3">
+                      <span className="font-mono">{row.hs_code}</span>
+                      <span className="ml-2 text-xs text-gray-400">{HS_NAMES[row.hs_code] ?? ''}</span>
+                    </td>
                     <td className="px-4 py-3 text-right font-mono">{row.rate_pct}%</td>
                     <td className="px-4 py-3 text-right font-mono text-gray-400">{row.prev_rate_pct != null ? `${row.prev_rate_pct}%` : '--'}</td>
                     <td className={`px-4 py-3 text-right font-mono ${diff == null ? 'text-gray-400' : diff > 0 ? 'text-red-600' : diff < 0 ? 'text-green-600' : 'text-gray-400'}`}>
