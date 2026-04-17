@@ -22,7 +22,10 @@ export default function PoliciesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold">政策动态</h1>
+      <div className="page-enter">
+        <h1 className="text-2xl font-semibold" style={{ color: 'var(--text)' }}>政策</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>商务部 · WTO 涉轮胎相关政策动态</p>
+      </div>
       <PolicyRateChart rates={rates} policies={policies} />
       <PolicyTimeline data={policies} source={source} onSourceChange={setSource} />
     </div>

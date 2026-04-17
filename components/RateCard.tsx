@@ -6,12 +6,36 @@ interface RateCardProps {
 }
 
 export default function RateCard({ label, value, sub, highlight }: RateCardProps) {
-  const subColor = highlight === 'up' ? 'text-green-600' : highlight === 'down' ? 'text-red-600' : 'text-gray-500'
+  const subColor =
+    highlight === 'up'   ? 'var(--green)' :
+    highlight === 'down' ? 'var(--red)'   : 'var(--text-2)'
+
+  const glowColor =
+    highlight === 'up'   ? 'var(--green-dim)' :
+    highlight === 'down' ? 'var(--red-dim)'   : 'transparent'
+
   return (
-    <div className="bg-white rounded-xl border p-4 flex flex-col gap-1">
-      <span className="text-xs text-gray-500 uppercase tracking-wide">{label}</span>
-      <span className="text-2xl font-bold">{value}</span>
-      {sub && <span className={`text-sm font-medium ${subColor}`}>{sub}</span>}
+    <div
+      className="card p-5 flex flex-col gap-2 transition-all page-enter"
+      style={{ boxShadow: highlight ? `0 0 0 1px ${glowColor}, inset 0 0 24px ${glowColor}` : undefined }}
+    >
+      <span
+        className="text-[10px] font-semibold uppercase tracking-widest"
+        style={{ color: 'var(--text-3)' }}
+      >
+        {label}
+      </span>
+      <span
+        className="text-3xl font-semibold leading-none tracking-tight"
+        style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)' }}
+      >
+        {value}
+      </span>
+      {sub && (
+        <span className="text-xs font-medium" style={{ color: subColor }}>
+          {highlight === 'up' ? '▲ ' : highlight === 'down' ? '▼ ' : ''}{sub}
+        </span>
+      )}
     </div>
   )
 }

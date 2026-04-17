@@ -1,26 +1,128 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg:        #f0f3f9;
+  --surface:   #ffffff;
+  --surface-2: #f7f9fc;
+  --surface-3: #eef1f8;
+  --border:    #dde3ef;
+  --border-2:  #c5d0e4;
+  --text:      #1a2540;
+  --text-2:    #4a5a7a;
+  --text-3:    #8a9ab8;
+  --gold:      #b87a06;
+  --gold-l:    #d4920a;
+  --gold-dim:  rgba(212, 146, 10, 0.1);
+  --green:     #059669;
+  --green-dim: rgba(5, 150, 105, 0.1);
+  --red:       #dc2626;
+  --red-dim:   rgba(220, 38, 38, 0.1);
+  --blue:      #2563eb;
+  --blue-dim:  rgba(37, 99, 235, 0.1);
+  --sidebar:   210px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Outfit', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Menlo', monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+*, *::before, *::after { box-sizing: border-box; }
+
+html { color-scheme: light; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
 }
+
+/* Scrollbar */
+::-webkit-scrollbar          { width: 4px; height: 4px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: var(--border-2); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+/* Noise overlay on body */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px;
+  opacity: 0.4;
+}
+
+/* Reusable surface card */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.card-2 {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+/* Gold accent line for active states */
+.active-indicator::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 2px;
+  background: var(--gold-l);
+  border-radius: 0 2px 2px 0;
+}
+
+/* Table styles */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+.data-table th {
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.data-table th.right { text-align: right; }
+.data-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover td { background: var(--surface-2); }
+.data-table tbody tr.row-alert td { background: var(--red-dim); }
+
+/* Recharts dark overrides */
+.recharts-cartesian-axis-tick-value { fill: var(--text-2) !important; font-size: 11px; }
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line { stroke: var(--border) !important; }
+.recharts-tooltip-wrapper { outline: none !important; }
+
+/* Page enter animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter { animation: fadeUp 0.3s ease both; }
+.page-enter-1 { animation-delay: 0.05s; }
+.page-enter-2 { animation-delay: 0.1s; }
+.page-enter-3 { animation-delay: 0.15s; }
+.page-enter-4 { animation-delay: 0.2s; }

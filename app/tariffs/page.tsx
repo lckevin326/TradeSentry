@@ -22,7 +22,10 @@ export default function TariffsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold">关税详情</h1>
+      <div className="page-enter">
+        <h1 className="text-2xl font-semibold" style={{ color: 'var(--text)' }}>关税</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>GCC 六国 · HS 4011 轮胎品类进口税率</p>
+      </div>
       <TariffTable data={data} onRefresh={handleRefresh} loading={loading} />
     </div>
   )
