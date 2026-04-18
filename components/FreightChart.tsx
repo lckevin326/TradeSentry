@@ -24,6 +24,16 @@ interface FreightChartProps {
 
 const PERIOD_OPTIONS = [7, 30, 90] as const
 
+type TooltipPayloadEntry = {
+  value?: number
+}
+
+type TooltipProps = {
+  active?: boolean
+  payload?: TooltipPayloadEntry[]
+  label?: string
+}
+
 function formatFreight(value: number): string {
   return new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 0,
@@ -42,7 +52,7 @@ export function sliceFreightSeries(data: FreightChartPoint[], days: number): Fre
   return data.filter((point) => new Date(point.date) > cutoff)
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (!active || !payload?.length) {
     return null
   }
@@ -57,7 +67,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         className="mt-0.5 font-semibold"
         style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-l)' }}
       >
-        ¥{formatFreight(payload[0].value as number)}
+        ¥{formatFreight(payload[0]?.value ?? 0)}
       </div>
     </div>
   )

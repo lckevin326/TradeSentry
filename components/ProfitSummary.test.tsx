@@ -3,7 +3,7 @@ import { test } from 'node:test'
 
 import { renderToStaticMarkup } from 'react-dom/server'
 
-import type { AttributionResult, ProfitResult } from '../lib/profit'
+import type { ProfitResult } from '../lib/profit'
 
 import ProfitSummary from './ProfitSummary'
 

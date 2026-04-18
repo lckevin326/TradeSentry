@@ -21,7 +21,15 @@ type FreightHistoryRow = {
 
 function createFreightDb(result: { data: FreightHistoryRow[] | null; error: { message: string } | null }) {
   const calls: Array<unknown[]> = []
-  const builder: any = {
+
+  type FreightQueryBuilder = {
+    select(columns: string): FreightQueryBuilder
+    order(column: string, options: { ascending: boolean }): FreightQueryBuilder
+    eq(column: string, value: string): FreightQueryBuilder
+    gte(column: string, value: string): Promise<typeof result>
+  }
+
+  const builder: FreightQueryBuilder = {
     select(columns: string) {
       calls.push(['select', columns])
       return builder

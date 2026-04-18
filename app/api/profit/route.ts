@@ -359,7 +359,7 @@ async function readJsonBody(request: Request): Promise<unknown> {
   }
 }
 
-export async function POST(request: Request, deps: ProfitRouteDeps = {}): Promise<Response> {
+export async function postProfitRequest(request: Request, deps: ProfitRouteDeps = {}): Promise<Response> {
   try {
     const now = deps.now?.() ?? DEFAULT_NOW()
     const payload = await readJsonBody(request)
@@ -424,4 +424,8 @@ export async function POST(request: Request, deps: ProfitRouteDeps = {}): Promis
       { status },
     )
   }
+}
+
+export async function POST(request: Request): Promise<Response> {
+  return postProfitRequest(request)
 }

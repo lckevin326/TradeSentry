@@ -2,7 +2,7 @@ import { strict as assert } from 'node:assert'
 import { mock } from 'node:test'
 import { test } from 'node:test'
 
-import { POST } from './route'
+import { postProfitRequest } from './route'
 
 function createMarketData() {
   return {
@@ -70,7 +70,7 @@ function createRawRequest(body: string) {
 }
 
 test('POST /api/profit returns today, yesterday, attribution, and selected market values', async () => {
-  const response = await POST(
+  const response = await postProfitRequest(
     createRequest({
       destinationCountry: 'UAE',
       hsCode: '401110',
@@ -215,7 +215,7 @@ test('POST /api/profit marks synthetic CNY FX values as synthetic and preserves 
   })
 
   try {
-    const response = await POST(
+    const response = await postProfitRequest(
       createRequest({
         destinationCountry: 'UAE',
         hsCode: '401110',
@@ -253,7 +253,7 @@ test('POST /api/profit marks synthetic CNY FX values as synthetic and preserves 
 })
 
 test('POST /api/profit rejects invalid order input', async () => {
-  const response = await POST(
+  const response = await postProfitRequest(
     createRequest({
       destinationCountry: 'UAE',
       hsCode: '401110',
@@ -280,7 +280,7 @@ test('POST /api/profit rejects invalid order input', async () => {
 })
 
 test('POST /api/profit applies manual freight override when provided', async () => {
-  const response = await POST(
+  const response = await postProfitRequest(
     createRequest({
       destinationCountry: 'UAE',
       hsCode: '401110',
@@ -309,7 +309,7 @@ test('POST /api/profit applies manual freight override when provided', async () 
 })
 
 test('POST /api/profit rejects unsupported freight route keys', async () => {
-  const response = await POST(
+  const response = await postProfitRequest(
     createRequest({
       destinationCountry: 'UAE',
       hsCode: '401110',
@@ -336,7 +336,7 @@ test('POST /api/profit rejects unsupported freight route keys', async () => {
 })
 
 test('POST /api/profit rejects malformed JSON with a clean client error', async () => {
-  const response = await POST(createRawRequest('{"destinationCountry":'))
+  const response = await postProfitRequest(createRawRequest('{"destinationCountry":'))
 
   assert.equal(response.status, 400)
 
@@ -346,7 +346,7 @@ test('POST /api/profit rejects malformed JSON with a clean client error', async 
 })
 
 test('POST /api/profit rejects freight routes incompatible with destination country and container type', async () => {
-  const response = await POST(
+  const response = await postProfitRequest(
     createRequest({
       destinationCountry: 'UAE',
       hsCode: '401110',
