@@ -279,6 +279,35 @@ test('POST /api/profit rejects invalid order input', async () => {
   assert.match(json.error, /quotedAmount/i)
 })
 
+test('POST /api/profit applies manual freight override when provided', async () => {
+  const response = await POST(
+    createRequest({
+      destinationCountry: 'UAE',
+      hsCode: '401110',
+      tradeTerm: 'FOB',
+      quoteCurrency: 'USD',
+      quotedAmount: 1000,
+      quantity: 10,
+      productCost: 4000,
+      miscFees: 100,
+      routeKey: 'shanghai-jebel-ali-20gp',
+      containerType: '20GP',
+      overrideFreight: 220,
+    }),
+    {
+      now: () => new Date('2026-04-18T10:00:00.000Z'),
+      loadMarketData: async () => createMarketData(),
+    },
+  )
+
+  assert.equal(response.status, 200)
+
+  const json = await response.json()
+
+  assert.equal(json.todayResult.freightCny, 220)
+  assert.equal(json.yesterdayResult.freightCny, 220)
+})
+
 test('POST /api/profit rejects unsupported freight route keys', async () => {
   const response = await POST(
     createRequest({

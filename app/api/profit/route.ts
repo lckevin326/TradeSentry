@@ -1,6 +1,7 @@
 import {
   PROFIT_CONTAINER_TYPES,
   PROFIT_COUNTRIES,
+  type ProfitCalculationInput,
   PROFIT_QUOTE_CURRENCIES,
   PROFIT_TRADE_TERMS,
   type MarketSnapshot,
@@ -110,6 +111,14 @@ function assertNumber(value: unknown, field: string): asserts value is number {
   }
 }
 
+function assertNullableNumber(value: unknown, field: string): asserts value is number | null | undefined {
+  if (value === undefined || value === null) {
+    return
+  }
+
+  assertNumber(value, field)
+}
+
 function assertEnum<T extends readonly string[]>(value: unknown, field: string, values: T): asserts value is T[number] {
   assertString(value, field)
 
@@ -139,7 +148,7 @@ function assertFreightRouteCompatibility(
   }
 }
 
-function parseOrderInput(payload: unknown): OrderInput {
+function parseOrderInput(payload: unknown): ProfitCalculationInput {
   if (typeof payload !== 'object' || payload === null) {
     throw new Error('Request body must be a JSON object')
   }
@@ -155,6 +164,7 @@ function parseOrderInput(payload: unknown): OrderInput {
   assertNumber(candidate.productCost, 'productCost')
   assertNumber(candidate.miscFees, 'miscFees')
   assertEnum(candidate.containerType, 'containerType', PROFIT_CONTAINER_TYPES)
+  assertNullableNumber(candidate.overrideFreight, 'overrideFreight')
   assertFreightRouteCompatibility(candidate.routeKey, candidate.destinationCountry, candidate.containerType)
 
   if (candidate.quotedAmount <= 0) {
@@ -173,6 +183,10 @@ function parseOrderInput(payload: unknown): OrderInput {
     throw new Error('miscFees must be greater than or equal to 0')
   }
 
+  if (candidate.overrideFreight !== undefined && candidate.overrideFreight !== null && candidate.overrideFreight < 0) {
+    throw new Error('overrideFreight must be greater than or equal to 0')
+  }
+
   return {
     destinationCountry: candidate.destinationCountry,
     hsCode: candidate.hsCode.trim(),
@@ -184,11 +198,13 @@ function parseOrderInput(payload: unknown): OrderInput {
     miscFees: candidate.miscFees,
     routeKey: candidate.routeKey.trim(),
     containerType: candidate.containerType,
+    overrideFreight: candidate.overrideFreight ?? null,
   }
 }
 
 function toMarketSnapshot(
   rebateRatePct: number,
+  overrideFreight: number | null,
   source: {
     fxRate: number
     tariffRatePct: number
@@ -201,7 +217,7 @@ function toMarketSnapshot(
     antiDumpingRatePct: 0,
     exportRebateRatePct: rebateRatePct,
     baselineFreight: source.freightCny,
-    overrideFreight: null,
+    overrideFreight,
   }
 }
 
@@ -347,7 +363,8 @@ export async function POST(request: Request, deps: ProfitRouteDeps = {}): Promis
   try {
     const now = deps.now?.() ?? DEFAULT_NOW()
     const payload = await readJsonBody(request)
-    const order = parseOrderInput(payload)
+    const input = parseOrderInput(payload)
+    const { overrideFreight, ...order } = input
     const rebateLookup = (deps.getRebateRate ?? getExportRebateRateByHsCode)(order.hsCode)
     const marketData = await (deps.loadMarketData ?? loadMarketData)(order, now)
 
@@ -368,12 +385,12 @@ export async function POST(request: Request, deps: ProfitRouteDeps = {}): Promis
       order.quoteCurrency === 'CNY' ? 'synthetic_cny_parity' : 'market_rate',
     )
 
-    const todaySnapshot = toMarketSnapshot(rebateLookup.ratePct, {
+    const todaySnapshot = toMarketSnapshot(rebateLookup.ratePct, overrideFreight, {
       fxRate: todaySelection.fxRate,
       tariffRatePct: todaySelection.tariffRatePct,
       freightCny: todaySelection.freightCny,
     })
-    const yesterdaySnapshot = toMarketSnapshot(rebateLookup.ratePct, {
+    const yesterdaySnapshot = toMarketSnapshot(rebateLookup.ratePct, overrideFreight, {
       fxRate: yesterdaySelection.fxRate,
       tariffRatePct: yesterdaySelection.tariffRatePct,
       freightCny: yesterdaySelection.freightCny,
@@ -384,7 +401,7 @@ export async function POST(request: Request, deps: ProfitRouteDeps = {}): Promis
 
     return Response.json({
       ok: true,
-      input: order,
+      input,
       rebate: rebateLookup,
       selectedMarketValues: {
         today: todaySelection,

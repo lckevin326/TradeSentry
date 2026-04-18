@@ -26,6 +26,10 @@ export interface OrderInput {
   containerType: ContainerType
 }
 
+export interface ProfitCalculationInput extends OrderInput {
+  overrideFreight: number | null
+}
+
 export interface MarketSnapshot {
   fxRate: number
   tariffRatePct: number
