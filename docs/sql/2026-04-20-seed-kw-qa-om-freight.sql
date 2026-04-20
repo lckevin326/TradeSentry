@@ -28,7 +28,8 @@ BEGIN
   -- Only insert if we have reference data
   IF ref_20gp IS NOT NULL THEN
     INSERT INTO freight_rates (route_key, container_type, baseline_freight, date)
-    VALUES
+    SELECT v.route_key, v.container_type, v.baseline_freight, v.date
+    FROM (VALUES
       ('shanghai-shuaiba-20gp',  '20GP', round(ref_20gp  * 1.05), today_date),
       ('shanghai-shuaiba-40gp',  '40GP', round(ref_40gp  * 1.05), today_date),
       ('shanghai-shuaiba-40hq',  '40HQ', round(ref_40hq  * 1.05), today_date),
@@ -38,6 +39,12 @@ BEGIN
       ('shanghai-sohar-20gp',    '20GP', round(ref_20gp  * 1.08), today_date),
       ('shanghai-sohar-40gp',    '40GP', round(ref_40gp  * 1.08), today_date),
       ('shanghai-sohar-40hq',    '40HQ', round(ref_40hq  * 1.08), today_date)
-    ON CONFLICT (route_key, container_type, date) DO NOTHING;
+    ) AS v(route_key, container_type, baseline_freight, date)
+    WHERE NOT EXISTS (
+      SELECT 1 FROM freight_rates r
+      WHERE r.route_key = v.route_key
+        AND r.container_type = v.container_type
+        AND r.date = v.date
+    );
   END IF;
 END $$;
