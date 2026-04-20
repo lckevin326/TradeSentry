@@ -21,7 +21,6 @@ import {
 } from './ProfitDecisionAiBrief'
 import ProfitCalculator, { type ProfitCalculationResponse } from './ProfitCalculator'
 import ProfitSummary from './ProfitSummary'
-import RateCard from './RateCard'
 import RateChart from './RateChart'
 
 type RateChartPoint = {
