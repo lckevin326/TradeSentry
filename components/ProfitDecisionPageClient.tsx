@@ -257,33 +257,6 @@ export default function ProfitDecisionPageClient({
 
       <AlertBanner />
 
-      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-        <RateCard
-          label="当前利润"
-          value={todayProfit != null ? `¥${formatMetricValue(todayProfit)}` : '待测算'}
-          sub={todayMargin != null ? `${todayMargin.toFixed(2)}% 利润率` : '录入参数后生成'}
-          highlight={todayProfit == null ? null : todayProfit >= 0 ? 'up' : 'down'}
-        />
-        <RateCard
-          label="人民币 / AED 汇率"
-          value={aedRate?.rate != null ? formatMetricValue(aedRate.rate, 4) : '—'}
-          sub={changeLabel(aedRate?.change_pct)}
-          highlight={aedRate?.change_pct == null ? null : aedRate.change_pct > 0 ? 'up' : 'down'}
-        />
-        <RateCard
-          label="中东默认运费"
-          value={latestFreight != null ? `¥${formatMetricValue(latestFreight)}` : '待抓取'}
-          sub={latestFreight != null ? 'CCFI 中东指数映射' : '需先抓取运费源'}
-          highlight={latestFreight != null ? 'up' : null}
-        />
-        <RateCard
-          label="政策观察"
-          value={String(policyCount)}
-          sub={policyCount > 0 ? '条最新相关政策' : '暂无政策'}
-          highlight={policyCount > 0 ? 'up' : null}
-        />
-      </div>
-
       <HomeSummaryCard
         summary={homeSummary}
         aiBrief={aiBriefState}

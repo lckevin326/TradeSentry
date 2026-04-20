@@ -1,10 +1,12 @@
 import ProfitDecisionPageClient from '../components/ProfitDecisionPageClient'
+import MarketCardsSection from '../components/MarketCardsSection'
 import type { FreightChartPoint } from '../components/FreightChart'
 import type { ProfitCalculationResponse } from '../components/ProfitCalculator'
 import type { DecisionAdvice } from '../lib/profit/advice'
 import { deriveDecisionAdvice } from '../lib/profit/decision-advice'
 import { deriveHomeSummary, type HomeSummary } from '../lib/profit/home-summary'
 import { isSupabaseConfigured, SUPABASE_ENV_ERROR } from '../lib/supabase'
+import type { MarketsApiResponse } from './api/markets/today/route'
 
 export const revalidate = 300
 
@@ -44,6 +46,7 @@ export interface ProfitDecisionPageData {
   initialCalculation: ProfitCalculationResponse | null
   decisionAdvice: DecisionAdvice | null
   homeSummary: HomeSummary
+  marketsData: MarketsApiResponse | null
 }
 
 type ProfitDecisionPageDataDeps = {
@@ -137,6 +140,41 @@ export function getPageHomeSummary(
   })
 }
 
+async function fetchMarketsToday(): Promise<MarketsApiResponse | null> {
+  const todayDate = new Date().toISOString().slice(0, 10)
+  const { loadAllMarketSnapshots } = await import('../lib/profit/market-data')
+  const { buildMarketOrder, MARKETS } = await import('../lib/profit/market-defaults')
+  const { calculateAttribution, calculateProfitResult } = await import('../lib/profit/calculate')
+
+  try {
+    const orders = MARKETS.map(m => ({ ...buildMarketOrder(m), key: m.key }))
+    const snapshots = await loadAllMarketSnapshots(orders, todayDate)
+
+    const markets = MARKETS.map((market, i) => {
+      const order = orders[i]
+      const snap = snapshots.get(market.key)
+
+      if (!snap || !snap.today) {
+        return { key: market.key, label: market.label, today: null, yesterday: null, deltaMarginPct: null, attribution: null, status: 'unavailable' as const }
+      }
+
+      const todayResult = calculateProfitResult(order, snap.today)
+      const yesterdayResult = snap.yesterday ? calculateProfitResult(order, snap.yesterday) : null
+      const deltaMarginPct = yesterdayResult != null
+        ? Math.round((todayResult.marginPct - yesterdayResult.marginPct) * 100) / 100
+        : null
+      const attribution = snap.yesterday ? calculateAttribution(order, snap.yesterday, snap.today) : null
+      const status = todayResult.marginPct >= 13 ? 'ok' : todayResult.marginPct >= 10 ? 'cautious' : 'pause'
+
+      return { key: market.key, label: market.label, today: todayResult, yesterday: yesterdayResult, deltaMarginPct, attribution, status: status as 'ok' | 'cautious' | 'pause' }
+    })
+
+    return { date: todayDate, markets }
+  } catch {
+    return null
+  }
+}
+
 export async function getProfitDecisionPageData(
   deps: ProfitDecisionPageDataDeps = {},
 ): Promise<ProfitDecisionPageData> {
@@ -145,6 +183,7 @@ export async function getProfitDecisionPageData(
 
     return {
       ...deps.seedData,
+      marketsData: deps.seedData.marketsData ?? null,
       decisionAdvice,
       homeSummary: getPageHomeSummary({
         ...deps.seedData,
@@ -178,15 +217,17 @@ export async function getProfitDecisionPageData(
         },
         recentPoliciesCount: 0,
       }),
+      marketsData: null,
     }
   }
 
-  const [aedRate, tariffUpdate, fxChartData, freightChartData, recentPolicies] = await Promise.all([
+  const [aedRate, tariffUpdate, fxChartData, freightChartData, recentPolicies, marketsData] = await Promise.all([
     getLatestRate('AED'),
     getLatestTariffUpdate(),
     getChartData('AED'),
     getFreightChartData('shanghai-jebel-ali-20gp', '20GP'),
     getRecentPolicies(),
+    fetchMarketsToday(),
   ])
 
   const tariffDate = tariffUpdate?.fetched_at
@@ -217,6 +258,7 @@ export async function getProfitDecisionPageData(
       },
       recentPoliciesCount: recentPolicies.length,
     }),
+    marketsData,
   }
 
   return data
@@ -224,5 +266,12 @@ export async function getProfitDecisionPageData(
 
 export default async function DashboardPage() {
   const data = await getProfitDecisionPageData()
-  return <ProfitDecisionPageContent data={data} />
+  return (
+    <>
+      {data.marketsData && (
+        <MarketCardsSection markets={data.marketsData.markets} date={data.marketsData.date} />
+      )}
+      <ProfitDecisionPageContent data={data} />
+    </>
+  )
 }

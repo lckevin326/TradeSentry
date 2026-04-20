@@ -45,6 +45,7 @@ function createPageData(): ProfitDecisionPageData {
       keySignals: [],
       focus: '先完成一笔报价测算，再看综合结论。',
     },
+    marketsData: null,
   }
 }
 
@@ -62,7 +63,6 @@ test('homepage renders calculator and trend context', () => {
   assert.match(markup, /政策动态与时间轴/)
   assert.match(markup, /阿联酋轮胎标签规则更新/)
   assert.match(markup, /有税率变化/)
-  assert.match(markup, /当前利润/)
 })
 
 test('homepage renders server-provided decision advice without requiring client-side recalculation', () => {
