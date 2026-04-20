@@ -16,11 +16,14 @@ import {
 } from './constants'
 
 test('freight constants define supported destination countries and container types', () => {
-  assert.deepEqual(FREIGHT_COUNTRIES, ['UAE', 'SA'])
+  assert.deepEqual(FREIGHT_COUNTRIES, ['UAE', 'SA', 'KW', 'QA', 'OM'])
   assert.deepEqual(FREIGHT_CONTAINER_TYPES, ['20GP', '40GP', '40HQ'])
   assert.deepEqual(FREIGHT_COUNTRY_LABELS, {
     UAE: '阿联酋',
     SA: '沙特',
+    KW: '科威特',
+    QA: '卡塔尔',
+    OM: '阿曼',
   })
   assert.deepEqual(FREIGHT_CONTAINER_TYPE_LABELS, {
     '20GP': '20GP · 20尺柜',

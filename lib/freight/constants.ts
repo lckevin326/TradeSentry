@@ -1,11 +1,14 @@
 import type { ContainerType, Country } from '../profit'
 
-export const FREIGHT_COUNTRIES = ['UAE', 'SA'] as const satisfies readonly Country[]
+export const FREIGHT_COUNTRIES = ['UAE', 'SA', 'KW', 'QA', 'OM'] as const satisfies readonly Country[]
 export type FreightCountry = (typeof FREIGHT_COUNTRIES)[number]
 
 export const FREIGHT_COUNTRY_LABELS: Record<FreightCountry, string> = {
   UAE: '阿联酋',
   SA: '沙特',
+  KW: '科威特',
+  QA: '卡塔尔',
+  OM: '阿曼',
 }
 
 export const FREIGHT_CONTAINER_TYPES = ['20GP', '40GP', '40HQ'] as const satisfies readonly ContainerType[]
@@ -19,7 +22,7 @@ export const FREIGHT_CONTAINER_TYPE_LABELS: Record<FreightContainerType, string>
 
 type FreightRouteLane = {
   destinationCountry: FreightCountry
-  destinationPort: 'Jebel Ali' | 'Dammam'
+  destinationPort: 'Jebel Ali' | 'Dammam' | 'Shuaiba' | 'Hamad' | 'Sohar'
   destinationPortLabel: string
   countryLabel: string
   chartCountryLabel: string
@@ -40,12 +43,33 @@ const FREIGHT_ROUTE_LANES = [
     countryLabel: '沙特',
     chartCountryLabel: 'SA',
   },
+  {
+    destinationCountry: 'KW',
+    destinationPort: 'Shuaiba',
+    destinationPortLabel: '舒艾巴',
+    countryLabel: '科威特',
+    chartCountryLabel: 'KW',
+  },
+  {
+    destinationCountry: 'QA',
+    destinationPort: 'Hamad',
+    destinationPortLabel: '哈马德',
+    countryLabel: '卡塔尔',
+    chartCountryLabel: 'QA',
+  },
+  {
+    destinationCountry: 'OM',
+    destinationPort: 'Sohar',
+    destinationPortLabel: '苏哈尔',
+    countryLabel: '阿曼',
+    chartCountryLabel: 'OM',
+  },
 ] as const satisfies readonly FreightRouteLane[]
 
 export interface FreightRouteSelection {
   destinationCountry: FreightCountry
   originPort: 'Shanghai'
-  destinationPort: 'Jebel Ali' | 'Dammam'
+  destinationPort: 'Jebel Ali' | 'Dammam' | 'Shuaiba' | 'Hamad' | 'Sohar'
   containerType: FreightContainerType
 }
 
@@ -61,7 +85,7 @@ const FREIGHT_ROUTE_SHAPES = FREIGHT_ROUTE_LANES.flatMap(lane =>
     originPort: 'Shanghai' as const,
     destinationPort: lane.destinationPort,
     containerType,
-    routeKey: `shanghai-${lane.destinationPort === 'Jebel Ali' ? 'jebel-ali' : 'dammam'}-${containerType.toLowerCase()}`,
+    routeKey: `shanghai-${{ 'Jebel Ali': 'jebel-ali', Dammam: 'dammam', Shuaiba: 'shuaiba', Hamad: 'hamad', Sohar: 'sohar' }[lane.destinationPort]}-${containerType.toLowerCase()}`,
     label: `上海 -> ${lane.destinationPortLabel} · ${containerType}`,
     chartLabel: `${lane.chartCountryLabel} / ${lane.destinationPort} / ${containerType}`,
   })),

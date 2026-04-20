@@ -53,6 +53,15 @@ export const FREIGHT_ROUTE_ANCHORS: Record<FreightRouteKey, FreightRouteAnchor> 
   'shanghai-dammam-20gp': createAnchor('shanghai-dammam-20gp', 1180),
   'shanghai-dammam-40gp': createAnchor('shanghai-dammam-40gp', 1720),
   'shanghai-dammam-40hq': createAnchor('shanghai-dammam-40hq', 1820),
+  'shanghai-shuaiba-20gp': createAnchor('shanghai-shuaiba-20gp', 1200),
+  'shanghai-shuaiba-40gp': createAnchor('shanghai-shuaiba-40gp', 1750),
+  'shanghai-shuaiba-40hq': createAnchor('shanghai-shuaiba-40hq', 1850),
+  'shanghai-hamad-20gp': createAnchor('shanghai-hamad-20gp', 1220),
+  'shanghai-hamad-40gp': createAnchor('shanghai-hamad-40gp', 1780),
+  'shanghai-hamad-40hq': createAnchor('shanghai-hamad-40hq', 1880),
+  'shanghai-sohar-20gp': createAnchor('shanghai-sohar-20gp', 1150),
+  'shanghai-sohar-40gp': createAnchor('shanghai-sohar-40gp', 1680),
+  'shanghai-sohar-40hq': createAnchor('shanghai-sohar-40hq', 1780),
 }
 
 function assertPositiveFiniteNumber(value: number, fieldName: string): void {
