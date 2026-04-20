@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import PolicyTimeline from '@/components/PolicyTimeline'
 import PolicyRateChart from '@/components/PolicyRateChart'
+import { safeFetchJson } from '@/lib/http'
 import type { Policy, ExchangeRate, PolicySource } from '@/types'
 
 export default function PoliciesPage() {
@@ -11,13 +12,14 @@ export default function PoliciesPage() {
 
   useEffect(() => {
     const srcParam = source ? `&source=${source}` : ''
-    fetch(`/api/policies?relevant=false${srcParam}`)
-      .then(r => r.json()).then(setPolicies)
+    safeFetchJson<Policy[]>(`/api/policies?relevant=false${srcParam}`, { fallback: [] }).then(setPolicies)
   }, [source])
 
   useEffect(() => {
-    fetch('/api/exchange-rates?target=AED&days=90')
-      .then(r => r.json()).then(setRates)
+    safeFetchJson<Pick<ExchangeRate, 'date' | 'rate'>[]>(
+      '/api/exchange-rates?target=AED&days=90',
+      { fallback: [] },
+    ).then(setRates)
   }, [])
 
   return (

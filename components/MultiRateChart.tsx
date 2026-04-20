@@ -21,6 +21,7 @@ type TooltipProps = {
 }
 
 const COLORS: Record<Currency, string> = {
+  USD: '#2563eb',
   AED: '#f0ab24',
   SAR: '#34d399',
   KWD: '#a78bfa',
@@ -30,6 +31,7 @@ const COLORS: Record<Currency, string> = {
 }
 
 const CURRENCY_NAMES: Record<Currency, string> = {
+  USD: '美元',
   AED: '迪拉姆',
   SAR: '沙特里亚尔',
   KWD: '科威特第纳尔',

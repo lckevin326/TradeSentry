@@ -18,8 +18,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Nav />
         {/* sidebar width is 210px on desktop, 0 on mobile */}
-        <main className="min-h-dvh px-5 py-7 pb-24 md:pl-[calc(210px+2rem)] md:pr-8 md:py-8">
-          <div className="max-w-5xl mx-auto relative z-10">
+        <main className="min-h-dvh px-4 py-6 pb-24 md:pl-[calc(210px+1.25rem)] md:pr-5 md:py-6">
+          <div className="max-w-[1480px] mx-auto relative z-10">
             {children}
           </div>
         </main>

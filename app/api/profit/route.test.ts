@@ -252,6 +252,94 @@ test('POST /api/profit marks synthetic CNY FX values as synthetic and preserves 
   }
 })
 
+test('POST /api/profit falls back to the single latest FX record for first-day quote currencies', async () => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL ??= 'http://localhost'
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= 'anon'
+  process.env.SUPABASE_SERVICE_ROLE_KEY ??= 'service'
+
+  const { supabase } = await import('../../../lib/supabase')
+
+  const fromMock = mock.method(supabase, 'from', (table: string) => {
+    const rowsByTable: Record<string, unknown[]> = {
+      exchange_rates: [
+        {
+          date: '2026-04-18',
+          rate: 0.1463,
+        },
+      ],
+      tariffs: [
+        {
+          date: '2026-04-18',
+          fetched_at: '2026-04-18T08:00:00.000Z',
+          rate_pct: 12,
+        },
+        {
+          date: '2026-04-17',
+          fetched_at: '2026-04-17T08:00:00.000Z',
+          rate_pct: 10,
+        },
+      ],
+      freight_rates: [
+        {
+          date: '2026-04-17',
+          baseline_freight: 1168,
+          fetched_at: '2026-04-18T08:00:00.000Z',
+          source_url: 'https://example.com/freight/today',
+        },
+        {
+          date: '2026-04-10',
+          baseline_freight: 1274,
+          fetched_at: '2026-04-17T08:00:00.000Z',
+          source_url: 'https://example.com/freight/yesterday',
+        },
+      ],
+    }
+
+    return {
+      select() {
+        return this
+      },
+      eq() {
+        return this
+      },
+      order() {
+        return this
+      },
+      async limit() {
+        return {
+          data: rowsByTable[table] ?? [],
+          error: null,
+        }
+      },
+    }
+  })
+
+  try {
+    const response = await postProfitRequest(
+      createRequest({
+        destinationCountry: 'UAE',
+        hsCode: '401110',
+        tradeTerm: 'FOB',
+        quoteCurrency: 'USD',
+        quotedAmount: 1000,
+        quantity: 10,
+        productCost: 4000,
+        miscFees: 100,
+        routeKey: 'shanghai-jebel-ali-20gp',
+        containerType: '20GP',
+      }),
+    )
+
+    assert.equal(response.status, 200)
+
+    const json = await response.json()
+    assert.equal(json.selectedMarketValues.today.fxSourceRate, 0.1463)
+    assert.equal(json.selectedMarketValues.yesterday.fxSourceRate, 0.1463)
+  } finally {
+    fromMock.mock.restore()
+  }
+})
+
 test('POST /api/profit rejects invalid order input', async () => {
   const response = await postProfitRequest(
     createRequest({

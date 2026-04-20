@@ -1,3 +1,5 @@
+import { isSupabaseConfigured, supabase } from '../../../lib/supabase'
+
 type FreightHistoryRow = {
   date: string
   route_key: string
@@ -86,10 +88,13 @@ export async function fetchFreightHistory(
 }
 
 export async function GET(req: Request) {
+  if (!isSupabaseConfigured) {
+    return Response.json([])
+  }
+
   const { searchParams } = new URL(req.url)
   const query = parseFreightHistoryQuery(searchParams)
 
-  const { supabase } = await import('../../../lib/supabase')
   const freightDb = supabase as unknown as FreightHistoryDb
   const { data, error } = await fetchFreightHistory(freightDb, query)
 

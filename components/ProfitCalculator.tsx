@@ -29,8 +29,26 @@ export interface ProfitSelectedMarketValue {
 }
 
 export interface ProfitCalculationResponse {
+  ok?: boolean
+  error?: string
+  input: ProfitCalculationInput
   todayResult: ProfitResult | null
   yesterdayResult: ProfitResult | null
+  comparison?: {
+    profit: {
+      cny: number
+      marginPct: number
+    }
+    operating: {
+      revenueCny: number
+      freightCny: number
+    }
+    duties: {
+      tariffCny: number
+      antiDumpingCny: number
+      rebateCny: number
+    }
+  } | null
   attribution: AttributionResult | null
   selectedMarketValues:
     | {
@@ -140,14 +158,22 @@ export default function ProfitCalculator({
 }: ProfitCalculatorProps) {
   const [formState, setFormState] = useState<ProfitCalculatorFormState>(initialValue)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setIsSubmitting(true)
+    setErrorMessage(null)
 
     try {
       const result = await submitProfitCalculation(formState, fetcher)
+      if (result.ok === false || !result.todayResult || !result.yesterdayResult || !result.attribution) {
+        setErrorMessage(result.error ?? '当前缺少足够的汇率、关税或运费历史数据，暂时无法完成测算。')
+        return
+      }
       onCalculated?.(result)
+    } catch {
+      setErrorMessage('测算请求失败，请稍后重试。')
     } finally {
       setIsSubmitting(false)
     }
@@ -177,6 +203,15 @@ export default function ProfitCalculator({
           {isSubmitting ? '测算中...' : '开始测算'}
         </button>
       </div>
+
+      {errorMessage ? (
+        <div
+          className="rounded-lg border px-4 py-3 text-sm"
+          style={{ borderColor: 'rgba(220,38,38,0.25)', background: 'var(--red-dim)', color: 'var(--red)' }}
+        >
+          {errorMessage}
+        </div>
+      ) : null}
 
       <section className="card-2 p-4 space-y-4">
         <div>

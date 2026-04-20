@@ -1,38 +1,162 @@
 import { strict as assert } from 'node:assert'
-import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 
+import { CCFI_URL } from './ccfi'
 import {
-  parseFreightWeeklyHtml,
-  normalizeFreightRows,
+  fetchAndSaveFreight,
   saveFreightRows,
+  type FreightNormalizedRow,
 } from './freight'
 
-const fixtureUrl = new URL('./fixtures/freight-weekly.html', import.meta.url)
-const fixtureHtml = readFileSync(fixtureUrl, 'utf8')
-const sourceUrl = 'https://source.example/weekly-freight'
+test('fetchAndSaveFreight derives six freight rows from the current CCFI snapshot', async () => {
+  let capturedRows: FreightNormalizedRow[] = []
 
-test('freight parser extracts the weekly report date and raw row payloads', () => {
-  const parsed = parseFreightWeeklyHtml(fixtureHtml, sourceUrl)
-
-  assert.equal(parsed.reportDate, '2026-04-10')
-  assert.equal(parsed.rows.length, 3)
-  assert.deepEqual(parsed.rows[0], {
-    reportDate: '2026-04-10',
-    originPort: 'Shanghai',
-    destinationCountry: 'UAE',
-    destinationPort: 'Jebel Ali',
-    containerType: '20GP',
-    baselineFreight: 1250,
-    sourceUrl,
+  const result = await fetchAndSaveFreight({
+    loadCcfiSnapshot: async () => ({
+      routeName: 'PERSIAN GULF/RED SEA SERVICE',
+      previousDate: '2026-04-10',
+      currentDate: '2026-04-17',
+      previousIndex: 1834.9,
+      currentIndex: 1683.1,
+      changePct: -8.3,
+    }),
+    saveRows: async (rows) => {
+      capturedRows = rows
+      return { saved: rows.length }
+    },
   })
+
+  assert.deepEqual(result, {
+    scanned: 12,
+    saved: 12,
+    reportDate: '2026-04-17',
+  })
+  assert.deepEqual(capturedRows, [
+    {
+      date: '2026-04-10',
+      routeKey: 'shanghai-jebel-ali-20gp',
+      originPort: 'Shanghai',
+      destinationCountry: 'UAE',
+      destinationPort: 'Jebel Ali',
+      containerType: '20GP',
+      baselineFreight: 1274,
+      sourceUrl: CCFI_URL,
+    },
+    {
+      date: '2026-04-10',
+      routeKey: 'shanghai-jebel-ali-40gp',
+      originPort: 'Shanghai',
+      destinationCountry: 'UAE',
+      destinationPort: 'Jebel Ali',
+      containerType: '40GP',
+      baselineFreight: 1885,
+      sourceUrl: CCFI_URL,
+    },
+    {
+      date: '2026-04-10',
+      routeKey: 'shanghai-jebel-ali-40hq',
+      originPort: 'Shanghai',
+      destinationCountry: 'UAE',
+      destinationPort: 'Jebel Ali',
+      containerType: '40HQ',
+      baselineFreight: 1987,
+      sourceUrl: CCFI_URL,
+    },
+    {
+      date: '2026-04-10',
+      routeKey: 'shanghai-dammam-20gp',
+      originPort: 'Shanghai',
+      destinationCountry: 'SA',
+      destinationPort: 'Dammam',
+      containerType: '20GP',
+      baselineFreight: 1202,
+      sourceUrl: CCFI_URL,
+    },
+    {
+      date: '2026-04-10',
+      routeKey: 'shanghai-dammam-40gp',
+      originPort: 'Shanghai',
+      destinationCountry: 'SA',
+      destinationPort: 'Dammam',
+      containerType: '40GP',
+      baselineFreight: 1753,
+      sourceUrl: CCFI_URL,
+    },
+    {
+      date: '2026-04-10',
+      routeKey: 'shanghai-dammam-40hq',
+      originPort: 'Shanghai',
+      destinationCountry: 'SA',
+      destinationPort: 'Dammam',
+      containerType: '40HQ',
+      baselineFreight: 1855,
+      sourceUrl: CCFI_URL,
+    },
+    {
+      date: '2026-04-17',
+      routeKey: 'shanghai-jebel-ali-20gp',
+      originPort: 'Shanghai',
+      destinationCountry: 'UAE',
+      destinationPort: 'Jebel Ali',
+      containerType: '20GP',
+      baselineFreight: 1168,
+      sourceUrl: CCFI_URL,
+    },
+    {
+      date: '2026-04-17',
+      routeKey: 'shanghai-jebel-ali-40gp',
+      originPort: 'Shanghai',
+      destinationCountry: 'UAE',
+      destinationPort: 'Jebel Ali',
+      containerType: '40GP',
+      baselineFreight: 1729,
+      sourceUrl: CCFI_URL,
+    },
+    {
+      date: '2026-04-17',
+      routeKey: 'shanghai-jebel-ali-40hq',
+      originPort: 'Shanghai',
+      destinationCountry: 'UAE',
+      destinationPort: 'Jebel Ali',
+      containerType: '40HQ',
+      baselineFreight: 1823,
+      sourceUrl: CCFI_URL,
+    },
+    {
+      date: '2026-04-17',
+      routeKey: 'shanghai-dammam-20gp',
+      originPort: 'Shanghai',
+      destinationCountry: 'SA',
+      destinationPort: 'Dammam',
+      containerType: '20GP',
+      baselineFreight: 1103,
+      sourceUrl: CCFI_URL,
+    },
+    {
+      date: '2026-04-17',
+      routeKey: 'shanghai-dammam-40gp',
+      originPort: 'Shanghai',
+      destinationCountry: 'SA',
+      destinationPort: 'Dammam',
+      containerType: '40GP',
+      baselineFreight: 1608,
+      sourceUrl: CCFI_URL,
+    },
+    {
+      date: '2026-04-17',
+      routeKey: 'shanghai-dammam-40hq',
+      originPort: 'Shanghai',
+      destinationCountry: 'SA',
+      destinationPort: 'Dammam',
+      containerType: '40HQ',
+      baselineFreight: 1701,
+      sourceUrl: CCFI_URL,
+    },
+  ])
 })
 
-test('freight normalizer converts rows into route/date/container records', () => {
-  const parsed = parseFreightWeeklyHtml(fixtureHtml, sourceUrl)
-  const normalized = normalizeFreightRows(parsed.rows, parsed.reportDate, sourceUrl)
-
-  assert.deepEqual(normalized, [
+test('saveFreightRows batches the full normalized dataset into one upsert', async () => {
+  const normalized: FreightNormalizedRow[] = [
     {
       date: '2026-04-10',
       routeKey: 'shanghai-jebel-ali-20gp',
@@ -41,7 +165,7 @@ test('freight normalizer converts rows into route/date/container records', () =>
       destinationPort: 'Jebel Ali',
       containerType: '20GP',
       baselineFreight: 1250,
-      sourceUrl,
+      sourceUrl: CCFI_URL,
     },
     {
       date: '2026-04-10',
@@ -51,74 +175,9 @@ test('freight normalizer converts rows into route/date/container records', () =>
       destinationPort: 'Jebel Ali',
       containerType: '40HQ',
       baselineFreight: 1520,
-      sourceUrl,
+      sourceUrl: CCFI_URL,
     },
-    {
-      date: '2026-04-10',
-      routeKey: 'shanghai-dammam-40gp',
-      originPort: 'Shanghai',
-      destinationCountry: 'SA',
-      destinationPort: 'Dammam',
-      containerType: '40GP',
-      baselineFreight: 980,
-      sourceUrl,
-    },
-  ])
-})
-
-test('freight parser falls back to header labels when columns are reordered', () => {
-  const fallbackFixtureUrl = new URL('./fixtures/freight-weekly-reordered.html', import.meta.url)
-  const fallbackHtml = readFileSync(fallbackFixtureUrl, 'utf8')
-  const parsed = parseFreightWeeklyHtml(fallbackHtml, sourceUrl)
-
-  assert.equal(parsed.reportDate, '2026-04-17')
-  assert.deepEqual(parsed.rows, [
-    {
-      reportDate: '2026-04-17',
-      originPort: 'Shanghai',
-      destinationCountry: 'UAE',
-      destinationPort: 'Jebel Ali',
-      containerType: '20GP',
-      baselineFreight: 1330,
-      sourceUrl,
-    },
-    {
-      reportDate: '2026-04-17',
-      originPort: 'Shanghai',
-      destinationCountry: 'SA',
-      destinationPort: 'Dammam',
-      containerType: '40HQ',
-      baselineFreight: 1010,
-      sourceUrl,
-    },
-  ])
-})
-
-test('freight save batches the full normalized dataset into one upsert', async () => {
-  const normalized = normalizeFreightRows(
-    [
-      {
-        reportDate: '2026-04-10',
-        originPort: 'Shanghai',
-        destinationCountry: 'UAE',
-        destinationPort: 'Jebel Ali',
-        containerType: '20GP',
-        baselineFreight: 1250,
-        sourceUrl,
-      },
-      {
-        reportDate: '2026-04-10',
-        originPort: 'Shanghai',
-        destinationCountry: 'UAE',
-        destinationPort: 'Jebel Ali',
-        containerType: '40HQ',
-        baselineFreight: 1520,
-        sourceUrl,
-      },
-    ],
-    '2026-04-10',
-    sourceUrl,
-  )
+  ]
 
   const calls: unknown[] = []
   const db = {
@@ -143,7 +202,7 @@ test('freight save batches the full normalized dataset into one upsert', async (
   assert.equal(writeCall.options.onConflict, 'date,route_key')
   assert.equal(writeCall.rows.length, 2)
   assert.deepEqual(
-    writeCall.rows.map(row => ({ ...row, fetched_at: '<dynamic>' })),
+    writeCall.rows.map((row) => ({ ...row, fetched_at: '<dynamic>' })),
     [
       {
         date: '2026-04-10',
@@ -153,7 +212,7 @@ test('freight save batches the full normalized dataset into one upsert', async (
         destination_port: 'Jebel Ali',
         container_type: '20GP',
         baseline_freight: 1250,
-        source_url: sourceUrl,
+        source_url: CCFI_URL,
         fetched_at: '<dynamic>',
       },
       {
@@ -164,9 +223,86 @@ test('freight save batches the full normalized dataset into one upsert', async (
         destination_port: 'Jebel Ali',
         container_type: '40HQ',
         baseline_freight: 1520,
-        source_url: sourceUrl,
+        source_url: CCFI_URL,
         fetched_at: '<dynamic>',
       },
     ],
+  )
+})
+
+test('saveFreightRows returns zero without touching the database for empty input', async () => {
+  let called = false
+  const db = {
+    from() {
+      called = true
+      return {
+        async upsert() {
+          return { error: null }
+        },
+      }
+    },
+  }
+
+  const result = await saveFreightRows([], db)
+
+  assert.deepEqual(result, { saved: 0 })
+  assert.equal(called, false)
+})
+
+test('saveFreightRows throws on duplicate date and route combinations', async () => {
+  await assert.rejects(
+    () =>
+      saveFreightRows([
+        {
+          date: '2026-04-10',
+          routeKey: 'shanghai-jebel-ali-20gp',
+          originPort: 'Shanghai',
+          destinationCountry: 'UAE',
+          destinationPort: 'Jebel Ali',
+          containerType: '20GP',
+          baselineFreight: 1250,
+          sourceUrl: CCFI_URL,
+        },
+        {
+          date: '2026-04-10',
+          routeKey: 'shanghai-jebel-ali-20gp',
+          originPort: 'Shanghai',
+          destinationCountry: 'UAE',
+          destinationPort: 'Jebel Ali',
+          containerType: '20GP',
+          baselineFreight: 1260,
+          sourceUrl: CCFI_URL,
+        },
+      ]),
+    /duplicate date:routeKey pairs/,
+  )
+})
+
+test('saveFreightRows throws when the database upsert fails', async () => {
+  const db = {
+    from() {
+      return {
+        async upsert() {
+          return { error: { message: 'db down' } }
+        },
+      }
+    },
+  }
+
+  await assert.rejects(
+    () =>
+      saveFreightRows([
+        {
+          date: '2026-04-10',
+          routeKey: 'shanghai-jebel-ali-20gp',
+          originPort: 'Shanghai',
+          destinationCountry: 'UAE',
+          destinationPort: 'Jebel Ali',
+          containerType: '20GP',
+          baselineFreight: 1250,
+          sourceUrl: CCFI_URL,
+        },
+      ], db),
+    /Freight save failed: db down/,
   )
 })
