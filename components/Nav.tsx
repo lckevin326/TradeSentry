@@ -49,6 +49,18 @@ const links = [
       </svg>
     ),
   },
+  {
+    href: '/freight',
+    label: '运费',
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 7h11v8H3z" />
+        <path d="M14 10h4l3 3v2h-7z" />
+        <circle cx="7.5" cy="17.5" r="1.5" />
+        <circle cx="18.5" cy="17.5" r="1.5" />
+      </svg>
+    ),
+  },
 ]
 
 export default function Nav() {

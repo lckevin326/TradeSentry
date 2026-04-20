@@ -1,4 +1,4 @@
-export type Currency = 'AED' | 'SAR' | 'KWD' | 'QAR' | 'BHD' | 'OMR'
+export type Currency = 'USD' | 'AED' | 'SAR' | 'KWD' | 'QAR' | 'BHD' | 'OMR'
 export type Country = 'UAE' | 'SA' | 'KW' | 'QA' | 'BH' | 'OM'
 export type AlertType = 'tariff_change' | 'rate_spike' | 'new_policy'
 export type Severity = 'high' | 'medium' | 'low'

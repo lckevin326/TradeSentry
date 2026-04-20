@@ -61,6 +61,7 @@ test('submitProfitCalculation sends typed order payload including freight overri
     overrideFreight: 2120,
   }
   const response: ProfitCalculationResponse = {
+    input: state,
     todayResult: null,
     yesterdayResult: null,
     attribution: null,

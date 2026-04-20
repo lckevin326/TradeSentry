@@ -1,7 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import type { Currency } from '@/types'
 
-const CURRENCIES: Currency[] = ['AED', 'SAR', 'KWD', 'QAR', 'BHD', 'OMR']
+const CURRENCIES: Currency[] = ['USD', 'AED', 'SAR', 'KWD', 'QAR', 'BHD', 'OMR']
 const THRESHOLD = parseFloat(process.env.RATE_SPIKE_THRESHOLD ?? '0.5')
 
 export async function fetchAndSaveRates(): Promise<{ saved: number; alerts: number }> {

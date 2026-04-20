@@ -1,6 +1,10 @@
 import ProfitDecisionPageClient from '../components/ProfitDecisionPageClient'
 import type { FreightChartPoint } from '../components/FreightChart'
 import type { ProfitCalculationResponse } from '../components/ProfitCalculator'
+import type { DecisionAdvice } from '../lib/profit/advice'
+import { deriveDecisionAdvice } from '../lib/profit/decision-advice'
+import { deriveHomeSummary, type HomeSummary } from '../lib/profit/home-summary'
+import { isSupabaseConfigured, SUPABASE_ENV_ERROR } from '../lib/supabase'
 
 export const revalidate = 300
 
@@ -22,6 +26,11 @@ type RecentPolicy = {
   published_at: string
 }
 
+type FreightChartRow = {
+  date: string
+  baseline_freight: number
+}
+
 export interface ProfitDecisionPageData {
   baselineFreight: number
   aedRate: LatestRate | null
@@ -33,6 +42,13 @@ export interface ProfitDecisionPageData {
   }
   recentPolicies: RecentPolicy[]
   initialCalculation: ProfitCalculationResponse | null
+  decisionAdvice: DecisionAdvice | null
+  homeSummary: HomeSummary
+}
+
+type ProfitDecisionPageDataDeps = {
+  supabaseConfigured?: boolean
+  seedData?: Omit<ProfitDecisionPageData, 'decisionAdvice'>
 }
 
 async function getLatestRate(target: string): Promise<LatestRate | null> {
@@ -92,7 +108,7 @@ async function getFreightChartData(routeKey: string, containerType: string): Pro
     .gte('date', since)
     .order('date', { ascending: true })
 
-  return (data ?? []).map((row) => ({
+  return ((data ?? []) as FreightChartRow[]).map((row) => ({
     date: row.date,
     baselineFreight: row.baseline_freight,
   }))
@@ -102,7 +118,69 @@ export function ProfitDecisionPageContent({ data }: { data: ProfitDecisionPageDa
   return <ProfitDecisionPageClient {...data} />
 }
 
-export default async function DashboardPage() {
+export function getPageDecisionAdvice(
+  calculation: ProfitCalculationResponse | null,
+  recentPoliciesCount: number,
+): DecisionAdvice | null {
+  return deriveDecisionAdvice(calculation, recentPoliciesCount)
+}
+
+export function getPageHomeSummary(
+  data: Pick<ProfitDecisionPageData, 'decisionAdvice' | 'aedRate' | 'baselineFreight' | 'tariffStatus' | 'recentPolicies'>,
+): HomeSummary {
+  return deriveHomeSummary({
+    decisionAdvice: data.decisionAdvice,
+    aedRate: data.aedRate,
+    baselineFreight: data.baselineFreight,
+    tariffStatus: data.tariffStatus,
+    recentPoliciesCount: data.recentPolicies.length,
+  })
+}
+
+export async function getProfitDecisionPageData(
+  deps: ProfitDecisionPageDataDeps = {},
+): Promise<ProfitDecisionPageData> {
+  if (deps.seedData) {
+    const decisionAdvice = getPageDecisionAdvice(deps.seedData.initialCalculation, deps.seedData.recentPolicies.length)
+
+    return {
+      ...deps.seedData,
+      decisionAdvice,
+      homeSummary: getPageHomeSummary({
+        ...deps.seedData,
+        decisionAdvice,
+      }),
+    }
+  }
+
+  const supabaseConfigured = deps.supabaseConfigured ?? isSupabaseConfigured
+
+  if (!supabaseConfigured) {
+    return {
+      baselineFreight: 0,
+      aedRate: null,
+      fxChartData: [],
+      freightChartData: [],
+      tariffStatus: {
+        dateLabel: '未配置数据源',
+        statusLabel: SUPABASE_ENV_ERROR,
+      },
+      recentPolicies: [],
+      initialCalculation: null,
+      decisionAdvice: null,
+      homeSummary: deriveHomeSummary({
+        decisionAdvice: null,
+        aedRate: null,
+        baselineFreight: 0,
+        tariffStatus: {
+          dateLabel: '未配置数据源',
+          statusLabel: SUPABASE_ENV_ERROR,
+        },
+        recentPoliciesCount: 0,
+      }),
+    }
+  }
+
   const [aedRate, tariffUpdate, fxChartData, freightChartData, recentPolicies] = await Promise.all([
     getLatestRate('AED'),
     getLatestTariffUpdate(),
@@ -128,7 +206,23 @@ export default async function DashboardPage() {
     },
     recentPolicies,
     initialCalculation: null,
+    decisionAdvice: null,
+    homeSummary: deriveHomeSummary({
+      decisionAdvice: null,
+      aedRate,
+      baselineFreight,
+      tariffStatus: {
+        dateLabel: tariffDate,
+        statusLabel: tariffStatus,
+      },
+      recentPoliciesCount: recentPolicies.length,
+    }),
   }
 
+  return data
+}
+
+export default async function DashboardPage() {
+  const data = await getProfitDecisionPageData()
   return <ProfitDecisionPageContent data={data} />
 }

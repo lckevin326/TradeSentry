@@ -272,8 +272,15 @@ async function loadFxSeries(order: OrderInput, now: Date): Promise<MarketSeries<
 
   const rows = (data ?? []) as FxHistoryRow[]
 
-  if (rows.length < 2) {
+  if (rows.length === 0) {
     throw new Error(`Need at least two FX records for ${order.quoteCurrency}`)
+  }
+
+  if (rows.length === 1) {
+    return {
+      today: rows[0],
+      yesterday: rows[0],
+    }
   }
 
   return {

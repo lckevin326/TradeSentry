@@ -57,3 +57,12 @@ export interface AttributionResult {
   totalDeltaCny: number
   dominantDriver: ProfitDriver
 }
+
+export type {
+  AdviceAction,
+  AdviceDriver,
+  AdviceStatus,
+  DecisionAdvice,
+  DecisionAdviceInput,
+  DriverBreakdownItem,
+} from './advice'
