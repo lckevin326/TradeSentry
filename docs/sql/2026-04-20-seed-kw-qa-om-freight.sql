@@ -27,17 +27,17 @@ BEGIN
 
   -- Only insert if we have reference data
   IF ref_20gp IS NOT NULL THEN
-    INSERT INTO freight_rates (route_key, container_type, baseline_freight, date, source)
+    INSERT INTO freight_rates (route_key, container_type, baseline_freight, date)
     VALUES
-      ('shanghai-shuaiba-20gp',  '20GP', round(ref_20gp  * 1.05), today_date, 'seed-estimate'),
-      ('shanghai-shuaiba-40gp',  '40GP', round(ref_40gp  * 1.05), today_date, 'seed-estimate'),
-      ('shanghai-shuaiba-40hq',  '40HQ', round(ref_40hq  * 1.05), today_date, 'seed-estimate'),
-      ('shanghai-hamad-20gp',    '20GP', round(ref_20gp  * 1.03), today_date, 'seed-estimate'),
-      ('shanghai-hamad-40gp',    '40GP', round(ref_40gp  * 1.03), today_date, 'seed-estimate'),
-      ('shanghai-hamad-40hq',    '40HQ', round(ref_40hq  * 1.03), today_date, 'seed-estimate'),
-      ('shanghai-sohar-20gp',    '20GP', round(ref_20gp  * 1.08), today_date, 'seed-estimate'),
-      ('shanghai-sohar-40gp',    '40GP', round(ref_40gp  * 1.08), today_date, 'seed-estimate'),
-      ('shanghai-sohar-40hq',    '40HQ', round(ref_40hq  * 1.08), today_date, 'seed-estimate')
+      ('shanghai-shuaiba-20gp',  '20GP', round(ref_20gp  * 1.05), today_date),
+      ('shanghai-shuaiba-40gp',  '40GP', round(ref_40gp  * 1.05), today_date),
+      ('shanghai-shuaiba-40hq',  '40HQ', round(ref_40hq  * 1.05), today_date),
+      ('shanghai-hamad-20gp',    '20GP', round(ref_20gp  * 1.03), today_date),
+      ('shanghai-hamad-40gp',    '40GP', round(ref_40gp  * 1.03), today_date),
+      ('shanghai-hamad-40hq',    '40HQ', round(ref_40hq  * 1.03), today_date),
+      ('shanghai-sohar-20gp',    '20GP', round(ref_20gp  * 1.08), today_date),
+      ('shanghai-sohar-40gp',    '40GP', round(ref_40gp  * 1.08), today_date),
+      ('shanghai-sohar-40hq',    '40HQ', round(ref_40hq  * 1.08), today_date)
     ON CONFLICT (route_key, container_type, date) DO NOTHING;
   END IF;
 END $$;
