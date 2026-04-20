@@ -6,13 +6,23 @@ interface Props {
   data: Pick<ExchangeRate, 'date' | 'rate' | 'change_pct'>[]
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+type TooltipPayloadEntry = {
+  value?: number
+}
+
+type TooltipProps = {
+  active?: boolean
+  payload?: TooltipPayloadEntry[]
+  label?: string
+}
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (!active || !payload?.length) return null
   return (
     <div className="rounded-lg px-3 py-2 text-xs" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)', color: 'var(--text)' }}>
       <div style={{ color: 'var(--text-2)' }}>{label}</div>
       <div className="font-semibold mt-0.5" style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-l)' }}>
-        {(payload[0].value as number).toFixed(6)}
+        {(payload[0]?.value ?? 0).toFixed(6)}
       </div>
     </div>
   )

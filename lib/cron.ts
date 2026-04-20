@@ -21,5 +21,18 @@ export function registerCronJobs() {
     }
   }, { timezone: 'Asia/Shanghai' })
 
-  console.log('[cron] Jobs registered: rates@09:00, policies@10:00 (Asia/Shanghai)')
+  // 每周一 09:30 抓取运费
+  cron.schedule('30 9 * * 1', async () => {
+    console.log('[cron] Fetching freight rates...')
+    try {
+      const response = await fetch('http://localhost:3000/api/fetch/freight', { method: 'POST' })
+      if (!response.ok) {
+        throw new Error(`Freight fetch returned ${response.status}`)
+      }
+    } catch (e) {
+      console.error('[cron] Freight fetch failed:', e)
+    }
+  }, { timezone: 'Asia/Shanghai' })
+
+  console.log('[cron] Jobs registered: rates@09:00, policies@10:00, freight@Mon 09:30 (Asia/Shanghai)')
 }
