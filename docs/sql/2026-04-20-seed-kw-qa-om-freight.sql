@@ -27,24 +27,17 @@ BEGIN
 
   -- Only insert if we have reference data
   IF ref_20gp IS NOT NULL THEN
-    INSERT INTO freight_rates (route_key, container_type, baseline_freight, date)
-    SELECT v.route_key, v.container_type, v.baseline_freight, v.date
-    FROM (VALUES
-      ('shanghai-shuaiba-20gp',  '20GP', round(ref_20gp  * 1.05), today_date),
-      ('shanghai-shuaiba-40gp',  '40GP', round(ref_40gp  * 1.05), today_date),
-      ('shanghai-shuaiba-40hq',  '40HQ', round(ref_40hq  * 1.05), today_date),
-      ('shanghai-hamad-20gp',    '20GP', round(ref_20gp  * 1.03), today_date),
-      ('shanghai-hamad-40gp',    '40GP', round(ref_40gp  * 1.03), today_date),
-      ('shanghai-hamad-40hq',    '40HQ', round(ref_40hq  * 1.03), today_date),
-      ('shanghai-sohar-20gp',    '20GP', round(ref_20gp  * 1.08), today_date),
-      ('shanghai-sohar-40gp',    '40GP', round(ref_40gp  * 1.08), today_date),
-      ('shanghai-sohar-40hq',    '40HQ', round(ref_40hq  * 1.08), today_date)
-    ) AS v(route_key, container_type, baseline_freight, date)
-    WHERE NOT EXISTS (
-      SELECT 1 FROM freight_rates r
-      WHERE r.route_key = v.route_key
-        AND r.container_type = v.container_type
-        AND r.date = v.date
-    );
+    INSERT INTO freight_rates (route_key, origin_port, destination_country, destination_port, container_type, baseline_freight, date)
+    VALUES
+      ('shanghai-shuaiba-20gp', 'Shanghai', 'KW', 'Shuaiba', '20GP', round(ref_20gp * 1.05), today_date),
+      ('shanghai-shuaiba-40gp', 'Shanghai', 'KW', 'Shuaiba', '40GP', round(ref_40gp * 1.05), today_date),
+      ('shanghai-shuaiba-40hq', 'Shanghai', 'KW', 'Shuaiba', '40HQ', round(ref_40hq * 1.05), today_date),
+      ('shanghai-hamad-20gp',   'Shanghai', 'QA', 'Hamad',   '20GP', round(ref_20gp * 1.03), today_date),
+      ('shanghai-hamad-40gp',   'Shanghai', 'QA', 'Hamad',   '40GP', round(ref_40gp * 1.03), today_date),
+      ('shanghai-hamad-40hq',   'Shanghai', 'QA', 'Hamad',   '40HQ', round(ref_40hq * 1.03), today_date),
+      ('shanghai-sohar-20gp',   'Shanghai', 'OM', 'Sohar',   '20GP', round(ref_20gp * 1.08), today_date),
+      ('shanghai-sohar-40gp',   'Shanghai', 'OM', 'Sohar',   '40GP', round(ref_40gp * 1.08), today_date),
+      ('shanghai-sohar-40hq',   'Shanghai', 'OM', 'Sohar',   '40HQ', round(ref_40hq * 1.08), today_date)
+    ON CONFLICT (date, route_key) DO NOTHING;
   END IF;
 END $$;
