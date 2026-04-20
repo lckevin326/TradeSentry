@@ -177,6 +177,29 @@ export function deriveLiveDecisionState(input: {
   return { decisionAdvice, homeSummary }
 }
 
+type SaveState = 'idle' | 'saving' | 'saved' | 'error'
+
+async function saveQuote(calculation: ProfitCalculationResponse): Promise<void> {
+  const today = calculation.selectedMarketValues?.today
+  if (!calculation.todayResult || !today) throw new Error('No result to save')
+
+  const response = await fetch('/api/quotes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      input: calculation.input,
+      savedMarginPct: calculation.todayResult.marginPct,
+      savedProfitCny: calculation.todayResult.profitCny,
+      savedFxRate: today.fxRate,
+      savedTariffPct: today.tariffRatePct,
+      savedFreightCny: today.freightCny,
+      savedRebatePct: today.rebateRatePct,
+    }),
+  })
+  const json = (await response.json()) as { ok?: boolean; error?: string }
+  if (!json.ok) throw new Error(json.error ?? 'Save failed')
+}
+
 export default function ProfitDecisionPageClient({
   baselineFreight,
   aedRate,
@@ -194,6 +217,7 @@ export default function ProfitDecisionPageClient({
   const [homeSummary, setHomeSummary] = useState(initialHomeSummary)
   const [aiBriefState, setAiBriefState] = useState(initialAiBriefState)
   const [freightDays, setFreightDays] = useState(30)
+  const [saveState, setSaveState] = useState<SaveState>('idle')
   const latestFreight = freightChartData[freightChartData.length - 1]?.baselineFreight ?? null
   const policyCount = recentPolicies.length
   const todayProfit = calculation?.todayResult?.profitCny ?? null
@@ -351,6 +375,7 @@ export default function ProfitDecisionPageClient({
               setDecisionAdvice(nextDecisionState.decisionAdvice)
               setHomeSummary(nextDecisionState.homeSummary)
               setAiBriefState(createIdleAiBriefState())
+              setSaveState('idle')
             }}
           />
 
@@ -362,6 +387,42 @@ export default function ProfitDecisionPageClient({
                 attribution={calculation.attribution}
               />
               <ProfitAttribution attribution={calculation.attribution} />
+              <div className="card p-4 flex items-center justify-between gap-4">
+                <div className="text-sm" style={{ color: 'var(--text-2)' }}>
+                  保存后可在「报价历史」中对比同一报价在不同时间点的利润率变化。
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  {saveState === 'saved' && (
+                    <span className="text-sm" style={{ color: 'var(--green)' }}>已保存</span>
+                  )}
+                  {saveState === 'error' && (
+                    <span className="text-sm" style={{ color: 'var(--red)' }}>保存失败，请重试</span>
+                  )}
+                  <button
+                    type="button"
+                    disabled={saveState === 'saving'}
+                    onClick={async () => {
+                      if (!calculation) return
+                      setSaveState('saving')
+                      try {
+                        await saveQuote(calculation)
+                        setSaveState('saved')
+                      } catch {
+                        setSaveState('error')
+                      }
+                    }}
+                    className="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+                    style={{
+                      background: saveState === 'saved' ? 'var(--green-dim)' : 'var(--surface-2)',
+                      color: saveState === 'saved' ? 'var(--green)' : 'var(--text)',
+                      border: '1px solid var(--border)',
+                      opacity: saveState === 'saving' ? 0.6 : 1,
+                    }}
+                  >
+                    {saveState === 'saving' ? '保存中...' : '保存此次报价 →'}
+                  </button>
+                </div>
+              </div>
             </>
           ) : null}
         </div>
