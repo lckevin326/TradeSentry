@@ -1,7 +1,16 @@
-import { supabase } from '@/lib/supabase'
+import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 import { NextRequest, NextResponse } from 'next/server'
 
+type TariffRow = {
+  hs_code: string
+  country: string
+}
+
 export async function GET(req: NextRequest) {
+  if (!isSupabaseConfigured) {
+    return NextResponse.json([])
+  }
+
   const { searchParams } = new URL(req.url)
   const country = searchParams.get('country')
   const hs_code = searchParams.get('hs_code')
@@ -19,7 +28,7 @@ export async function GET(req: NextRequest) {
 
   // 去重：每组取最新
   const seen = new Set<string>()
-  const latest = (data ?? []).filter(row => {
+  const latest = ((data ?? []) as TariffRow[]).filter(row => {
     const key = `${row.hs_code}-${row.country}`
     if (seen.has(key)) return false
     seen.add(key)

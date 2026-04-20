@@ -49,6 +49,32 @@ const links = [
       </svg>
     ),
   },
+  {
+    href: '/freight',
+    label: '运费',
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 7h11v8H3z" />
+        <path d="M14 10h4l3 3v2h-7z" />
+        <circle cx="7.5" cy="17.5" r="1.5" />
+        <circle cx="18.5" cy="17.5" r="1.5" />
+      </svg>
+    ),
+  },
+  {
+    href: '/quotes',
+    label: '报价历史',
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" />
+        <line x1="3" y1="9" x2="21" y2="9" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="14" x2="11" y2="14" />
+        <line x1="8" y1="18" x2="14" y2="18" />
+      </svg>
+    ),
+  },
 ]
 
 export default function Nav() {

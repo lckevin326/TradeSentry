@@ -8,7 +8,20 @@ interface Props {
   data: Record<Currency, RateRow[]>
 }
 
+type TooltipPayloadEntry = {
+  dataKey?: string
+  color?: string
+  value?: number
+}
+
+type TooltipProps = {
+  active?: boolean
+  payload?: TooltipPayloadEntry[]
+  label?: string
+}
+
 const COLORS: Record<Currency, string> = {
+  USD: '#2563eb',
   AED: '#f0ab24',
   SAR: '#34d399',
   KWD: '#a78bfa',
@@ -18,6 +31,7 @@ const COLORS: Record<Currency, string> = {
 }
 
 const CURRENCY_NAMES: Record<Currency, string> = {
+  USD: '美元',
   AED: '迪拉姆',
   SAR: '沙特里亚尔',
   KWD: '科威特第纳尔',
@@ -26,17 +40,17 @@ const CURRENCY_NAMES: Record<Currency, string> = {
   OMR: '阿曼里亚尔',
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (!active || !payload?.length) return null
   return (
     <div className="rounded-lg px-3 py-2.5 text-xs" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)', color: 'var(--text)' }}>
       <div className="mb-1.5" style={{ color: 'var(--text-2)' }}>{label}</div>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <div key={p.dataKey} className="flex items-center gap-2 leading-6">
           <span className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
           <span style={{ color: 'var(--text-2)' }}>CNY/{p.dataKey}</span>
           <span className="ml-auto font-medium" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)' }}>
-            {(p.value as number).toFixed(5)}
+            {(p.value ?? 0).toFixed(5)}
           </span>
         </div>
       ))}

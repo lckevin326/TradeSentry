@@ -1,7 +1,11 @@
-import { supabase } from '@/lib/supabase'
+import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {
+  if (!isSupabaseConfigured) {
+    return NextResponse.json([])
+  }
+
   const { searchParams } = new URL(req.url)
   const target = searchParams.get('target') ?? 'AED'
   const days = parseInt(searchParams.get('days') ?? '30')

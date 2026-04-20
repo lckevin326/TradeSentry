@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import TariffTable from '@/components/TariffTable'
+import { safeFetchJson } from '@/lib/http'
 import type { Tariff } from '@/types'
 
 export default function TariffsPage() {
@@ -8,7 +9,7 @@ export default function TariffsPage() {
   const [loading, setLoading] = useState(false)
 
   const loadData = useCallback(() => {
-    fetch('/api/tariffs').then(r => r.json()).then(setData)
+    return safeFetchJson<Tariff[]>('/api/tariffs', { fallback: [] }).then(setData)
   }, [])
 
   useEffect(() => { loadData() }, [loadData])
