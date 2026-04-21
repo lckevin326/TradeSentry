@@ -1,0 +1,54 @@
+<h2>功能 1+2 放在哪里？</h2>
+<p class="subtitle">「今日简报」和「多市场对比」该如何融入现有导航结构</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>全部整合进首页</h3>
+      <p>首页顶部加多市场利润率卡片（5个市场）+ AI简报文字框，下面保留现有的计算器和图表。导航不变。</p>
+      <div style="margin-top:10px;padding:10px;background:#f5f5f5;border-radius:6px;font-size:12px;line-height:1.8">
+        <strong>首页结构（从上到下）</strong><br>
+        📊 5市场利润率卡片 &nbsp;←&nbsp; 新增<br>
+        🤖 AI今日简报 &nbsp;←&nbsp; 新增<br>
+        📋 归因表（今日 vs 昨日） &nbsp;←&nbsp; 新增<br>
+        ── 以下现有内容保留 ──<br>
+        汇率卡片 / 运费卡片 / 政策卡片<br>
+        利润计算器 + 图表
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>首页加简报，新增「市场对比」页</h3>
+      <p>首页只加 AI 简报卡片（精简版），5市场横向对比独立成一个新的 /markets 页面，导航加一个入口。</p>
+      <div style="margin-top:10px;padding:10px;background:#f5f5f5;border-radius:6px;font-size:12px;line-height:1.8">
+        <strong>首页</strong>：加 AI 简报 + 今日最高/最低利润率市场提示<br>
+        <strong>/markets（新页）</strong>：<br>
+        &nbsp;&nbsp;- 5市场利润率柱状图<br>
+        &nbsp;&nbsp;- 各市场详情表（关税/运费/汇率/建议）<br>
+        &nbsp;&nbsp;- 近14天趋势折线图<br>
+        <strong>导航</strong>：新增「市场对比」
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>重构首页为「今日简报」，市场对比独立</h3>
+      <p>首页完全重新设计为"决策首页"：简报 + 多市场卡片 + 归因表一体，计算器移到底部或单独入口。市场详情对比在 /markets 页。</p>
+      <div style="margin-top:10px;padding:10px;background:#f5f5f5;border-radius:6px;font-size:12px;line-height:1.8">
+        <strong>首页（重设计）</strong>：<br>
+        &nbsp;&nbsp;决策状态 + AI简报 + 5市场卡片 + 归因表<br>
+        &nbsp;&nbsp;（计算器折叠或移至底部）<br>
+        <strong>/markets（新页）</strong>：完整对比图表<br>
+        <strong>导航</strong>：新增「市场对比」
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top:20px;font-size:12px;color:#888">点击选择，或直接在终端告诉我你的想法</p>

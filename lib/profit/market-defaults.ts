@@ -9,7 +9,7 @@ export interface MarketConfig {
 }
 
 export const DEFAULT_ORDER_BASE = {
-  hsCode: '4011209000',
+  hsCode: '401120',
   tradeTerm: 'CIF' as TradeTerm,
   quoteCurrency: 'CNY' as ProfitQuoteCurrency,
   quotedAmount: 19000,

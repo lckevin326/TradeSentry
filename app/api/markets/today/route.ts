@@ -4,6 +4,27 @@ import { buildMarketOrder, MARKETS } from '../../../../lib/profit/market-default
 import { buildYesterdayDateString, loadAllMarketSnapshots } from '../../../../lib/profit/market-data'
 import type { AttributionResult, ProfitResult } from '../../../../lib/profit/index'
 
+/** 检查今日汇率是否已抓取，若缺失则自动触发补漏抓取 */
+async function ensureTodayRates(todayDate: string): Promise<void> {
+  const { supabase } = await import('../../../../lib/supabase')
+  const { data } = await supabase
+    .from('exchange_rates')
+    .select('date')
+    .eq('date', todayDate)
+    .limit(1)
+    .single()
+
+  if (!data) {
+    // 今天还没有汇率数据，静默触发补漏
+    try {
+      const { fetchAndSaveRates } = await import('../../../../lib/scrapers/rates')
+      await fetchAndSaveRates()
+    } catch (_) {
+      // 补漏失败不阻断主流程，用最近一次数据兜底
+    }
+  }
+}
+
 export interface MarketTodayResult {
   key: string
   label: string
@@ -28,6 +49,9 @@ function deriveStatus(marginPct: number | null): MarketTodayResult['status'] {
 
 export async function GET(): Promise<NextResponse<MarketsApiResponse>> {
   const todayDate = new Date().toISOString().slice(0, 10)
+
+  // 懒加载补漏：Cron 失败时由首次页面访问触发补抓
+  await ensureTodayRates(todayDate)
 
   const orders = MARKETS.map(m => ({ ...buildMarketOrder(m), key: m.key }))
   const snapshots = await loadAllMarketSnapshots(orders, todayDate)

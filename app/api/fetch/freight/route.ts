@@ -14,6 +14,11 @@ export async function postFetchFreightRequest(
   }
 }
 
+// GET: called by Vercel Cron
+export async function GET() {
+  return postFetchFreightRequest()
+}
+// POST: called manually / from other routes
 export async function POST() {
   return postFetchFreightRequest()
 }

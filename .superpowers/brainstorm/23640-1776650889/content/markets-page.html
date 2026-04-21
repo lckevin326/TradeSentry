@@ -1,0 +1,184 @@
+<h2>/markets 页面布局</h2>
+<p class="subtitle">5市场横向对比 — 独立页面，从首页归因行「查看市场详情 →」进入</p>
+
+<div class="mockup" style="max-width:900px">
+  <div class="mockup-header">/markets — 市场对比</div>
+  <div class="mockup-body" style="background:#f8f8f8;padding:16px;font-family:sans-serif;font-size:13px">
+
+    <!-- 页面标题行 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:17px;font-weight:700;color:#222">市场利润对比</div>
+        <div style="font-size:11px;color:#888;margin-top:2px">以默认参数（40HQ，报价 ¥95/条，数量 200）计算 · 今日 2026-04-20</div>
+      </div>
+      <div style="font-size:11px;color:#4A90D9;cursor:pointer">修改默认参数 ↗</div>
+    </div>
+
+    <!-- 区块 1：利润率横向柱状图 -->
+    <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:16px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">今日利润率对比</div>
+      <!-- 模拟柱状图 -->
+      <div style="display:flex;align-items:flex-end;gap:18px;height:90px;padding-bottom:4px">
+        <!-- UAE -->
+        <div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:4px">
+          <div style="font-size:11px;font-weight:600;color:#d04040">11.4%</div>
+          <div style="width:100%;background:#fde0e0;border-radius:4px 4px 0 0;height:58px;position:relative">
+            <div style="position:absolute;bottom:0;left:0;right:0;background:#d04040;border-radius:4px 4px 0 0;height:58px"></div>
+          </div>
+          <div style="font-size:10px;color:#888">UAE</div>
+        </div>
+        <!-- SA -->
+        <div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:4px">
+          <div style="font-size:11px;font-weight:600;color:#2a9d59">14.2%</div>
+          <div style="width:100%;border-radius:4px 4px 0 0;height:72px;position:relative">
+            <div style="position:absolute;bottom:0;left:0;right:0;background:#2a9d59;border-radius:4px 4px 0 0;height:72px"></div>
+          </div>
+          <div style="font-size:10px;color:#888">SA</div>
+        </div>
+        <!-- KW -->
+        <div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:4px">
+          <div style="font-size:11px;font-weight:600;color:#c87d00">12.0%</div>
+          <div style="width:100%;border-radius:4px 4px 0 0;height:61px;position:relative">
+            <div style="position:absolute;bottom:0;left:0;right:0;background:#c87d00;border-radius:4px 4px 0 0;height:61px"></div>
+          </div>
+          <div style="font-size:10px;color:#888">KW</div>
+        </div>
+        <!-- QA -->
+        <div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:4px">
+          <div style="font-size:11px;font-weight:600;color:#2a9d59">13.8%</div>
+          <div style="width:100%;border-radius:4px 4px 0 0;height:70px;position:relative">
+            <div style="position:absolute;bottom:0;left:0;right:0;background:#2a9d59;border-radius:4px 4px 0 0;height:70px"></div>
+          </div>
+          <div style="font-size:10px;color:#888">QA</div>
+        </div>
+        <!-- OM -->
+        <div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:4px">
+          <div style="font-size:11px;font-weight:600;color:#2a9d59">13.1%</div>
+          <div style="width:100%;border-radius:4px 4px 0 0;height:66px;position:relative">
+            <div style="position:absolute;bottom:0;left:0;right:0;background:#2a9d59;border-radius:4px 4px 0 0;height:66px"></div>
+          </div>
+          <div style="font-size:10px;color:#888">OM</div>
+        </div>
+      </div>
+      <!-- 基准线标注 -->
+      <div style="margin-top:8px;font-size:10px;color:#aaa;text-align:right">警戒线 &lt;12% · 建议下限 13%</div>
+    </div>
+
+    <!-- 区块 2：各市场详情表 -->
+    <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-bottom:12px">
+      <div style="padding:12px 16px;font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #f0f0f0">各市场驱动因子明细</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="background:#fafafa;color:#888;font-size:10px;text-transform:uppercase">
+            <th style="padding:8px 12px;text-align:left;font-weight:600">市场</th>
+            <th style="padding:8px 12px;text-align:right;font-weight:600">货币</th>
+            <th style="padding:8px 12px;text-align:right;font-weight:600">CNY汇率</th>
+            <th style="padding:8px 12px;text-align:right;font-weight:600">进口关税</th>
+            <th style="padding:8px 12px;text-align:right;font-weight:600">运费/柜</th>
+            <th style="padding:8px 12px;text-align:right;font-weight:600">利润率</th>
+            <th style="padding:8px 12px;text-align:right;font-weight:600">vs昨日</th>
+            <th style="padding:8px 12px;text-align:center;font-weight:600">建议</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-top:1px solid #f5f5f5">
+            <td style="padding:10px 12px;font-weight:600">🇦🇪 迪拜 UAE</td>
+            <td style="padding:10px 12px;text-align:right;color:#888">AED</td>
+            <td style="padding:10px 12px;text-align:right">0.1931</td>
+            <td style="padding:10px 12px;text-align:right">5.0%</td>
+            <td style="padding:10px 12px;text-align:right">¥1,274</td>
+            <td style="padding:10px 12px;text-align:right;font-weight:700;color:#d04040">11.4%</td>
+            <td style="padding:10px 12px;text-align:right;color:#d04040">▼ 1.8%</td>
+            <td style="padding:10px 12px;text-align:center"><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#fef0f0;color:#d04040;font-weight:600">谨慎</span></td>
+          </tr>
+          <tr style="border-top:1px solid #f5f5f5;background:#f9fdf9">
+            <td style="padding:10px 12px;font-weight:600">🇸🇦 沙特 SA</td>
+            <td style="padding:10px 12px;text-align:right;color:#888">SAR</td>
+            <td style="padding:10px 12px;text-align:right">0.0514</td>
+            <td style="padding:10px 12px;text-align:right">5.0%</td>
+            <td style="padding:10px 12px;text-align:right">¥1,350</td>
+            <td style="padding:10px 12px;text-align:right;font-weight:700;color:#2a9d59">14.2%</td>
+            <td style="padding:10px 12px;text-align:right;color:#2a9d59">▲ 0.3%</td>
+            <td style="padding:10px 12px;text-align:center"><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#edf7f1;color:#2a9d59;font-weight:600">可接单</span></td>
+          </tr>
+          <tr style="border-top:1px solid #f5f5f5">
+            <td style="padding:10px 12px;font-weight:600">🇰🇼 科威特 KW</td>
+            <td style="padding:10px 12px;text-align:right;color:#888">KWD</td>
+            <td style="padding:10px 12px;text-align:right">0.6231</td>
+            <td style="padding:10px 12px;text-align:right">5.0%</td>
+            <td style="padding:10px 12px;text-align:right">¥1,420</td>
+            <td style="padding:10px 12px;text-align:right;font-weight:700;color:#c87d00">12.0%</td>
+            <td style="padding:10px 12px;text-align:right;color:#c87d00">▼ 0.9%</td>
+            <td style="padding:10px 12px;text-align:center"><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#fff8e6;color:#c87d00;font-weight:600">谨慎</span></td>
+          </tr>
+          <tr style="border-top:1px solid #f5f5f5;background:#f9fdf9">
+            <td style="padding:10px 12px;font-weight:600">🇶🇦 卡塔尔 QA</td>
+            <td style="padding:10px 12px;text-align:right;color:#888">QAR</td>
+            <td style="padding:10px 12px;text-align:right">0.0529</td>
+            <td style="padding:10px 12px;text-align:right">5.0%</td>
+            <td style="padding:10px 12px;text-align:right">¥1,350</td>
+            <td style="padding:10px 12px;text-align:right;font-weight:700;color:#2a9d59">13.8%</td>
+            <td style="padding:10px 12px;text-align:right;color:#2a9d59">▲ 0.3%</td>
+            <td style="padding:10px 12px;text-align:center"><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#edf7f1;color:#2a9d59;font-weight:600">可接单</span></td>
+          </tr>
+          <tr style="border-top:1px solid #f5f5f5">
+            <td style="padding:10px 12px;font-weight:600">🇴🇲 阿曼 OM</td>
+            <td style="padding:10px 12px;text-align:right;color:#888">OMR</td>
+            <td style="padding:10px 12px;text-align:right">0.5012</td>
+            <td style="padding:10px 12px;text-align:right">5.0%</td>
+            <td style="padding:10px 12px;text-align:right">¥1,398</td>
+            <td style="padding:10px 12px;text-align:right;font-weight:700;color:#2a9d59">13.1%</td>
+            <td style="padding:10px 12px;text-align:right;color:#888">— 持平</td>
+            <td style="padding:10px 12px;text-align:center"><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#edf7f1;color:#2a9d59;font-weight:600">可接单</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 区块 3：14日趋势折线图（示意） -->
+    <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.05em">近14日利润率趋势</div>
+        <div style="display:flex;gap:12px;font-size:10px">
+          <span style="color:#d04040">● UAE</span>
+          <span style="color:#2a9d59">● SA</span>
+          <span style="color:#c87d00">● KW</span>
+          <span style="color:#4A90D9">● QA</span>
+          <span style="color:#888">● OM</span>
+        </div>
+      </div>
+      <!-- SVG 折线图示意 -->
+      <svg width="100%" height="100" viewBox="0 0 820 100" preserveAspectRatio="none" style="display:block">
+        <!-- 背景格线 -->
+        <line x1="0" y1="20" x2="820" y2="20" stroke="#f0f0f0" stroke-width="1"/>
+        <line x1="0" y1="50" x2="820" y2="50" stroke="#f0f0f0" stroke-width="1"/>
+        <line x1="0" y1="80" x2="820" y2="80" stroke="#f0f0f0" stroke-width="1"/>
+        <!-- UAE 线（偏低，波动大） -->
+        <polyline points="0,55 60,52 120,58 180,60 240,56 300,62 360,65 420,60 480,68 540,72 600,70 660,75 720,78 820,82"
+          fill="none" stroke="#d04040" stroke-width="2"/>
+        <!-- SA 线（较高，稳定） -->
+        <polyline points="0,28 60,25 120,30 180,27 240,26 300,29 360,28 420,25 480,27 540,24 600,26 660,23 720,22 820,20"
+          fill="none" stroke="#2a9d59" stroke-width="2"/>
+        <!-- KW 线（中间，轻微下降） -->
+        <polyline points="0,42 60,40 120,44 180,43 240,45 300,47 360,46 420,44 480,48 540,50 600,49 660,52 720,54 820,56"
+          fill="none" stroke="#c87d00" stroke-width="2"/>
+        <!-- 今日标注 -->
+        <line x1="820" y1="0" x2="820" y2="100" stroke="#4A90D9" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="812" y="10" font-size="8" fill="#4A90D9" text-anchor="end">今日</text>
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:#ccc;margin-top:4px;padding:0 2px">
+        <span>4/7</span><span>4/10</span><span>4/13</span><span>4/16</span><span>4/20</span>
+      </div>
+      <div style="margin-top:8px;padding:8px 10px;background:#fffbe6;border-radius:6px;font-size:11px;color:#c87d00">
+        ⚠ 历史趋势图需要先建立 <code>profit_snapshots</code> 每日存储表（功能点6）。上线前可先显示"暂无历史数据，功能即将开放"占位。
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<p style="margin-top:16px;font-size:12px;color:#888">
+  以上是 /markets 页面完整布局。三块内容：柱状图概览 → 明细表 → 14日趋势。<br>
+  趋势图需要历史数据表支撑，建议先用占位文案上线，数据积累后再开。<br><br>
+  首页改动 + /markets 设计是否都 OK？确认后我来写设计文档。
+</p>

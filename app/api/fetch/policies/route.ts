@@ -1,7 +1,7 @@
 import { fetchAndSavePolicies } from '@/lib/scrapers/policies'
 import { NextResponse } from 'next/server'
 
-export async function POST() {
+async function handler() {
   try {
     const result = await fetchAndSavePolicies()
     return NextResponse.json({ ok: true, ...result })
@@ -10,3 +10,8 @@ export async function POST() {
     return NextResponse.json({ ok: false, error: message }, { status: 500 })
   }
 }
+
+// GET: called by Vercel Cron
+export const GET = handler
+// POST: called manually / from other routes
+export const POST = handler
